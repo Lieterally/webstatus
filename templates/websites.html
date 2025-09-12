@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+
+    <title>Monitoring Web ITK - Webites</title>
+
+    <!-- SB Admin 2 CSS -->
+    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" />
+    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet" />
+
+    <!-- Custom styles for this page -->
+
+    <link href="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet" />
+  </head>
+
+  <body id="page-top">
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+      <!-- Sidebar -->
+      <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+          <div class="sidebar-brand-icon rotate-n-15">
+            <i class="fas fa-laugh-wink"></i>
+          </div>
+          <div class="sidebar-brand-text mx-3">SB Admin <sup>2</sup></div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0" />
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item active">
+          <a class="nav-link" href="index.html">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Dashboard</span></a
+          >
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0" />
+
+        <!-- Nav Item - List Web -->
+        <li class="nav-item active">
+          <a class="nav-link" href="/websites">
+            <i class="fas fa-fw fa-tachometer-alt"></i>
+            <span>Websites</span></a
+          >
+        </li>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider d-none d-md-block" />
+
+        <!-- Sidebar Toggler (Sidebar) -->
+        <div class="text-center d-none d-md-inline">
+          <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
+      </ul>
+      <!-- End of Sidebar -->
+
+      <!-- Content Wrapper -->
+      <div id="content-wrapper" class="d-flex flex-column">
+        <!-- Main Content -->
+        <div id="content">
+          <!-- Topbar -->
+          <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+            <!-- Sidebar Toggle (Topbar) -->
+            <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+              <i class="fa fa-bars"></i>
+            </button>
+
+            <!-- Topbar Navbar -->
+            <ul class="navbar-nav ml-auto">
+              <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+              <li class="nav-item dropdown no-arrow d-sm-none">
+                <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <i class="fas fa-search fa-fw"></i>
+                </a>
+                <!-- Dropdown - Messages -->
+                <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
+                  <form class="form-inline mr-auto w-100 navbar-search">
+                    <div class="input-group">
+                      <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..." aria-label="Search" aria-describedby="basic-addon2" />
+                      <div class="input-group-append">
+                        <button class="btn btn-primary" type="button">
+                          <i class="fas fa-search fa-sm"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </li>
+
+              <!-- Nav Item - User Information -->
+              <li class="nav-item dropdown no-arrow">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
+                  <img class="img-profile rounded-circle" src="img/undraw_profile.svg" />
+                </a>
+                <!-- Dropdown - User Information -->
+                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Profile
+                  </a>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Settings
+                  </a>
+                  <a class="dropdown-item" href="#">
+                    <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Activity Log
+                  </a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                    Logout
+                  </a>
+                </div>
+              </li>
+            </ul>
+          </nav>
+          <!-- End of Topbar -->
+
+          <!-- Begin Page Content -->
+          <div class="container-fluid">
+            <!-- Page Heading -->
+            <h1 class="h3 mb-2 text-gray-800">Tables</h1>
+            <p class="mb-4">
+              DataTables is a third party plugin that is used to generate the demo table below. For more information about DataTables, please visit the <a target="_blank" href="https://datatables.net">official DataTables documentation</a>.
+            </p>
+
+            <div class="row">
+              <div class="col">
+                {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+                <div class="mb-3 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                  {{ message }}
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+
+                {% endfor %} {% endif %} {% endwith %}
+              </div>
+            </div>
+
+            <!-- DataTales Example -->
+            <div class="card shadow mb-4">
+              <div class="card-header py-3">
+                <div class="row">
+                  <div class="col">
+                    <h6 class="m-0 py-3 font-weight-bold text-primary">Daftar Website</h6>
+                  </div>
+                  <div class="d-flex col justify-content-end">
+                    <button type="button" class="btn btn-primary btn" data-toggle="modal" data-target="#addModal">Tambah Website</button>
+                  </div>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Kategori</th>
+                        <th>Unit</th>
+                        <th>URL</th>
+                        <th>Halaman</th>
+                        <th style="width: 12%">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr>
+                        <th>#</th>
+                        <th>Kategori</th>
+                        <th>Unit</th>
+                        <th>URL</th>
+                        <th>Halaman</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </tfoot>
+                    <tbody>
+                      {% for web in websites %}
+                      <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ web.slug_web }}</td>
+                        <td>{{ web.nama_web }}</td>
+                        <td>{{ web.link_web }}</td>
+                        <td>
+                          <ul class="list-group list-group-flush py-0">
+                            {% for page in web.pages %}
+                            <li class="list-group-item" style="padding: 0.25rem 1rem; font-size: 0.875rem">{{ page.halaman_web }}</li>
+                            {% endfor %}
+                          </ul>
+                        </td>
+                        <td class="p-0 text-center align-middle">
+                          {% set pages_list = [] %} {% for page in web.pages %} {% set _ = pages_list.append({"halaman_web": page.halaman_web}) %} {% endfor %}
+                          <!-- <pre>{{ pages_list | tojson }}</pre> -->
+                          <!-- prettier-ignore -->
+                          <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ web.id_web }}" data-nama="{{ web.nama_web }}" data-link="{{ web.link_web }}" data-pages='{{ pages_list | tojson | safe }}'><i class="fas fa-pen fa-sm text-white-50"></i>
+                            Edit
+                          </button>
+                          <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal" data-id="{{ web.id_web }}" data-name="{{ web.nama_web }}">
+                            <i class="fas fa-trash fa-sm text-white-50"></i> Hapus
+                          </button>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- /.container-fluid -->
+        </div>
+        <!-- End of Main Content -->
+
+        <!-- Footer -->
+        <footer class="sticky-footer bg-white">
+          <div class="container my-auto">
+            <div class="copyright text-center my-auto">
+              <span>Copyright &copy; Your Website 2021</span>
+            </div>
+          </div>
+        </footer>
+        <!-- End of Footer -->
+      </div>
+      <!-- End of Content Wrapper -->
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+      <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            <a class="btn btn-primary" href="login.html">Logout</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Add-->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle">Tambah Website</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <form method="POST" action="{{ url_for('websites.add_website') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="inputNamaWeb" class="form-label">Unit</label>
+                <input type="text" class="form-control" name="nama_web" id="inputNamaWeb" aria-describedby="namaWebHelp" placeholder="Unit Website" required />
+              </div>
+              <div class="mb-3">
+                <label for="inputUrlWeb" class="form-label">URL</label>
+                <input type="url" class="form-control" name="link_web" id="inputUrlWeb" placeholder="https://itk.ac.id" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Pages</label>
+                <div id="pages-container">
+                  <div class="input-group mb-2">
+                    <input type="text" name="halaman_web[]" class="form-control" placeholder="/login" required />
+                    <div class="input-group-append">
+                      <button class="btn btn-danger remove-page" type="button"><i class="fas fa-trash fa-sm text-white-50"></i></button>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-secondary" id="add-page">+ Add Page</button>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+              <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Hapus-->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModal" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModal">Konfirmasi Penghapusan</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <div class="modal-body">
+            <p>Apakah Anda yakin ingin menghapus <strong id="delete-item-name">unit ini</strong>?</p>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+            <a id="confirm-delete-btn" class="btn btn-danger" href="#">Hapus</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Edit-->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Edit Website</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          <form method="POST" id="editForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="editNamaWeb" class="form-label">Unit</label>
+                <input type="text" class="form-control" name="nama_web" id="editNamaWeb" aria-describedby="namaWebHelp" placeholder="Unit Website" required />
+              </div>
+              <div class="mb-3">
+                <label for="editUrlWeb" class="form-label">URL</label>
+                <input type="url" class="form-control" name="link_web" id="editUrlWeb" placeholder="https://itk.ac.id" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Pages</label>
+                <div class="pages-container" id="edit-pages-container"></div>
+                <button type="button" class="btn btn-sm btn-secondary add-page-btn">+ Add Page</button>
+              </div>
+            </div>
+
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+              <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+
+    <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+
+    <!-- <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> -->
+
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+
+    <!-- Core plugin JavaScript-->
+    <script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+    <!-- Page level plugins -->
+
+    <script src="{{ url_for('static', filename='vendor/chart.js/Chart.min.js') }}"></script>
+
+    <!-- <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script> -->
+
+    <script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="{{ url_for('static', filename='js/demo/datatables-demo.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/demo/chart-area-demo.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/demo/chart-pie-demo.js') }}"></script>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+
+    <script>
+      // Auto-dismiss alert after 2 seconds
+      $(document).ready(function () {
+        setTimeout(function () {
+          $(".alert").alert("close");
+        }, 2000);
+      });
+    </script>
+
+    <!-- Script Delete -->
+
+    <script>
+      $("#deleteModal").on("show.bs.modal", function (event) {
+        const button = $(event.relatedTarget); // Button that triggered the modal
+        const id = button.data("id");
+        const name = button.data("name");
+
+        const modal = $(this);
+        modal.find("#delete-item-name").text(name);
+        modal.find("#confirm-delete-btn").attr("href", `/websites/delete/${id}`);
+      });
+    </script>
+
+    <!-- Script Add -->
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const addContainer = document.getElementById("pages-container");
+
+        function updateDeleteButtonsAdd() {
+          const groups = addContainer.querySelectorAll(".input-group");
+          const buttons = addContainer.querySelectorAll(".remove-page");
+
+          buttons.forEach((btn) => {
+            btn.disabled = groups.length <= 1;
+          });
+        }
+
+        document.getElementById("add-page").addEventListener("click", function () {
+          const container = document.getElementById("pages-container");
+          const group = document.createElement("div");
+          group.className = "input-group mb-2";
+          group.innerHTML = `
+            <input type="text" name="halaman_web[]" class="form-control" placeholder="/login" required />
+            <div class="input-group-append">
+              <button class="btn btn-danger remove-page" type="button"><i class="fas fa-trash fa-sm text-white-50"></i></button>
+            </div>
+          `;
+
+          container.appendChild(group);
+          updateDeleteButtonsAdd();
+        });
+
+        // Handle remove page
+        document.addEventListener("click", function (e) {
+          if (e.target.closest(".remove-page")) {
+            e.target.closest(".input-group").remove();
+            updateDeleteButtonsAdd();
+          }
+        });
+
+        updateDeleteButtonsAdd();
+      });
+    </script>
+
+    <!-- Script Edit -->
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const editPagesContainer = document.getElementById("edit-pages-container");
+
+        function updateDeleteButtons() {
+          const total = editPagesContainer.querySelectorAll(".input-group").length;
+          const buttons = editPagesContainer.querySelectorAll(".remove-page");
+
+          buttons.forEach((btn) => {
+            btn.disabled = total <= 1;
+          });
+        }
+
+        document.querySelectorAll(".open-edit-modal").forEach((button) => {
+          button.addEventListener("click", function () {
+            const id = this.dataset.id;
+            const nama = this.dataset.nama;
+            const link = this.dataset.link;
+            const pages = JSON.parse(this.dataset.pages);
+
+            // Update form action
+            const form = document.getElementById("editForm");
+            form.action = `/websites/edit/${id}`;
+
+            // Set input values
+            document.getElementById("editNamaWeb").value = nama;
+            document.getElementById("editUrlWeb").value = link;
+
+            // Populate pages
+            const container = document.getElementById("edit-pages-container");
+            container.innerHTML = "";
+
+            pages.forEach((page) => {
+              const div = document.createElement("div");
+              div.className = "input-group mb-2";
+              div.innerHTML = `
+          <input type="text" name="halaman_web[]" class="form-control" value="${page.halaman_web}" required />
+          <div class="input-group-append">
+            <button class="btn btn-danger remove-page" type="button"><i class="fas fa-trash fa-sm text-white-50"></i></button>
+          </div>
+        `;
+              container.appendChild(div);
+            });
+
+            updateDeleteButtons();
+
+            // Open the modal
+            $("#editModal").modal("show");
+          });
+        });
+
+        // Handle remove page
+        document.addEventListener("click", function (e) {
+          const removeBtn = e.target.closest(".remove-page");
+          if (removeBtn) {
+            removeBtn.closest(".input-group").remove();
+            updateDeleteButtons();
+          }
+        });
+
+        // Handle add new page
+        document.querySelector("#editModal .add-page-btn").addEventListener("click", function () {
+          const container = document.getElementById("edit-pages-container");
+          const div = document.createElement("div");
+          div.className = "input-group mb-2";
+          div.innerHTML = `
+      <input type="text" name="halaman_web[]" class="form-control" placeholder="/new-page" required />
+      <div class="input-group-append">
+        <button class="btn btn-danger remove-page" type="button"><i class="fas fa-trash fa-sm text-white-50"></i></button>
+      </div>
+    `;
+          container.appendChild(div);
+          updateDeleteButtons();
+        });
+      });
+    </script>
+  </body>
+</html>

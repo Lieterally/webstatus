@@ -1,0 +1,349 @@
+[
+  {
+    "nama_web": "Prodi Teknik Sipil",
+    "slug_web": "prodi-teknik-sipil",
+    "link_web": "https://ce.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Kimia",
+    "slug_web": "prodi-teknik-kimia",
+    "link_web": "https://che.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Elektro",
+    "slug_web": "prodi-teknik-elektro",
+    "link_web": "https://ee.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Lingkungan",
+    "slug_web": "prodi-teknik-lingkungan",
+    "link_web": "https://enviro.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Industri",
+    "slug_web": "prodi-teknik-industri",
+    "link_web": "https://ie.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Informatika",
+    "slug_web": "prodi-teknik-informatika",
+    "link_web": "https://if.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Sistem Informasi",
+    "slug_web": "prodi-sistem-informasi",
+    "link_web": "https://is.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Matematika",
+    "slug_web": "prodi-matematika",
+    "link_web": "https://math.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Mesin",
+    "slug_web": "prodi-teknik-mesin",
+    "link_web": "https://me.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Material Metalurgi",
+    "slug_web": "prodi-teknik-material-metalurgi",
+    "link_web": "https://mme.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Perkapalan",
+    "slug_web": "prodi-teknik-perkapalan",
+    "link_web": "https://na.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Kelautan",
+    "slug_web": "prodi-teknik-kelautan",
+    "link_web": "https://oe.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Fisika",
+    "slug_web": "prodi-fisika",
+    "link_web": "https://phy.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Perencanaan Wilayah dan Kota",
+    "slug_web": "prodi-perencanaan-wilayah-dan-kota",
+    "link_web": "https://urp.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Arsitektur",
+    "slug_web": "prodi-arsitektur",
+    "link_web": "https://ars.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Statistika",
+    "slug_web": "prodi-statistika",
+    "link_web": "https://stat.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Ilmu Aktuaria",
+    "slug_web": "prodi-ilmu-aktuaria",
+    "link_web": "https://actsci.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Teknik Pangan",
+    "slug_web": "prodi-teknik-pangan",
+    "link_web": "https://foodtech.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Rekayasa Keselamatan",
+    "slug_web": "prodi-rekayasa-keselamatan",
+    "link_web": "https://safetyeng.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Bisnis Digital",
+    "slug_web": "prodi-bisnis-digital",
+    "link_web": "https://bisnisdigital.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Prodi Desain Komunikasi Visual",
+    "slug_web": "prodi-desan-komunikasi-visual",
+    "link_web": "https://dkv.itk.ac.id",
+    "halaman_web": ["/", "/berita", "/profile/sejarah", "/profile/visimisi", "/akademik/kurikulum", "/akademik/silabus", "/kemahasiswaan/ormawa", "/penelitian/grup_penelitan", "/kontak", "/login"]
+  },
+  {
+    "nama_web": "Repository",
+    "slug_web": "repository",
+    "link_web": "https://repository.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Perpustakaan",
+    "slug_web": "Perpustakaan",
+    "link_web": "https://perpustakaan.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Learning Management Systems",
+    "slug_web": "learning-management-systems",
+    "link_web": "https://kuliah.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Dokumen Mutu",
+    "slug_web": "dokumen-mutu",
+    "link_web": "https://dokumen-mutu.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Penerimaan Mahasiswa Baru",
+    "slug_web": "penerimaan-mahasiswa-baru",
+    "link_web": "https://pmb.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SIM Manajemen",
+    "slug_web": "sim-manajemen",
+    "link_web": "https://simmanajemen.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SIPEKA",
+    "slug_web": "sipeka",
+    "link_web": "https://sipeka.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SPEAK",
+    "slug_web": "speak",
+    "link_web": "https://speak.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SUMMIT",
+    "slug_web": "summit",
+    "link_web": "https://summit.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SIMPAS",
+    "slug_web": "simpas",
+    "link_web": "https://simpas.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "JAMU",
+    "slug_web": "jamu",
+    "link_web": "https://jamu.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Short Link",
+    "slug_web": "short-link",
+    "link_web": "https://s.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Sirama",
+    "slug_web": "sirama",
+    "link_web": "https://sirama.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SIM Banding",
+    "slug_web": "sim-banding",
+    "link_web": "https://simbanding.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Gerbang",
+    "slug_web": "gerbang",
+    "link_web": "https://gerbang.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Host to Host BNI",
+    "slug_web": "host-to-host-bni",
+    "link_web": "https://h2hbni.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Host to Host BRI",
+    "slug_web": "host-to-host-bri",
+    "link_web": "https://h2hbri.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Host to Host Mandiri",
+    "slug_web": "host-to-host-mandiri",
+    "link_web": "https://h2hmandiri.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Tracer Study",
+    "slug_web": "tracer-study",
+    "link_web": "https://tracer.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Feeder Gerbang",
+    "slug_web": "feeder-gerbang",
+    "link_web": "https://feeder-gerbang.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "PPID",
+    "slug_web": "ppid",
+    "link_web": "https://ppid.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "DPM ITK",
+    "slug_web": "dpm-itk",
+    "link_web": "https://dpm.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Open House ITK",
+    "slug_web": "open-house-itk",
+    "link_web": "https://openhouse.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Kerjasama ITK",
+    "slug_web": "kerjasama-itk",
+    "link_web": "https://kerjasama.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Pilrek ITK",
+    "slug_web": "pilrek-itk",
+    "link_web": "https://pilrek.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Unit Layanan Terpadu",
+    "slug_web": "unit-layanan-terpadu",
+    "link_web": "https://ult.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Web Profil ITK",
+    "slug_web": "web-profil-itk",
+    "link_web": "https://itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SPI",
+    "slug_web": "spi",
+    "link_web": "https://spi.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "UPA TIK",
+    "slug_web": "upa-tik",
+    "link_web": "https://ict.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "UPA Bahasa",
+    "slug_web": "upa-bahasa",
+    "link_web": "https://lch.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "LPPM",
+    "slug_web": "lppm",
+    "link_web": "https://lppm.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Dev SCA",
+    "slug_web": "dev-sca",
+    "link_web": "https://dev-sca.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "Journal",
+    "slug_web": "journal",
+    "link_web": "https://journal.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "IAET",
+    "slug_web": "iaet",
+    "link_web": "https://iaet.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "SNBP",
+    "slug_web": "snbp",
+    "link_web": "https://snbp.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "inkubator-bisnis",
+    "link_web": "https://ibt.itk.ac.id",
+    "halaman_web": ["/"]
+  },
+  {
+    "nama_web": "CCTV",
+    "slug_web": "cctv",
+    "link_web": "http://nvr.itk.ac.id",
+    "halaman_web": ["/"]
+  }
+]
