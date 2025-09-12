@@ -248,26 +248,23 @@ def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_p
 
     return statuses_for_ui, overall_status, final_avg_time
 
-
-@app.route("/status")
-def status():
+def run_monitor_cycle():
     try:
         sites = load_sites()
         print("✅ sites loaded")
     except Exception as e:
-        print("❌ error in /status:", e)
-        return jsonify({"error": str(e)}), 500
-    
+        print("❌ error loading sites:", e)
+        raise
+
     # Keep cache aligned with current sites *every cycle*
     state = _load_state()
     state = _rehydrate_state_for_sites(state, sites)
-    _save_state(state)  # optional early save
+    _save_state(state)
 
     def monitor(site):
-        # ⬇️ use triple-check with majority vote
         statuses, overall_status, avg_response_time = check_site_multi(site["link_web"], site["halaman_web"])
         return {
-            "site_key": _site_key(site),  # carry resolved key forward
+            "site_key": _site_key(site),
             "nama_web": site["nama_web"],
             "link_web": site["link_web"],
             "overall_status": overall_status,
@@ -275,15 +272,13 @@ def status():
             "statuses": statuses
         }
 
-    # parallel per site, each site does its own 3 sequential attempts
     with ThreadPoolExecutor(max_workers=10) as executor:
         monitored = list(executor.map(monitor, sites))
 
     # --- Notification throttling logic (per-site) ---
-    sites_to_notify_down = []   # sites that should trigger a DOWN alert this cycle
-    sites_recovered = []        # sites that transitioned DOWN -> UP this cycle
-    
-    # Re-load (in case another worker wrote it), then update entries for current run
+    sites_to_notify_down = []
+    sites_recovered = []
+
     current_state = _load_state()
     current_state = _rehydrate_state_for_sites(current_state, sites)
 
@@ -293,11 +288,7 @@ def status():
         name = web["nama_web"]
         is_down = "❌" in web["overall_status"]
 
-        prev = current_state.get(key, {
-            "last_status": "UNKNOWN",
-            "cycles_since_last_notif": NOTIF_COOLDOWN_CYCLES,
-        })
-        
+        prev = current_state.get(key, {"last_status": "UNKNOWN", "cycles_since_last_notif": NOTIF_COOLDOWN_CYCLES})
         last_status = prev.get("last_status", "UNKNOWN")
         since = int(prev.get("cycles_since_last_notif", NOTIF_COOLDOWN_CYCLES))
 
@@ -306,76 +297,187 @@ def status():
 
         if is_down:
             if last_status != "DOWN":
-                # First time (or after being UP): alert immediately
                 should_notify_down = True
                 since = 0
             else:
-                # Still DOWN: only re-alert every N cycles
                 since += 1
                 if since >= NOTIF_COOLDOWN_CYCLES:
                     should_notify_down = True
                     since = 0
         else:
-            # Site is UP now
             if last_status == "DOWN":
-                # Recovered message
                 should_notify_recovered = True
-            # Reset so next DOWN alerts immediately
             since = NOTIF_COOLDOWN_CYCLES
 
         current_state[key].update({
-    "nama_web": name,                         # <-- keep name synced
-    "link_web": link_web,                         # (optional)
-    "last_status": "DOWN" if is_down else "UP",
-    "cycles_since_last_notif": since
-})
+            "nama_web": name,
+            "link_web": link_web,
+            "last_status": "DOWN" if is_down else "UP",
+            "cycles_since_last_notif": since
+        })
 
         if should_notify_down:
-            sites_to_notify_down.append({
-                "nama_web": name,
-                "link_web": link_web,
-                "overall_status": web["overall_status"]
-            })
-
+            sites_to_notify_down.append({"nama_web": name, "link_web": link_web, "overall_status": web["overall_status"]})
         if should_notify_recovered:
-            sites_recovered.append({
-                "nama_web": name,
-                "link_web": link_web,
-                "overall_status": "✅ UP"
-            })
+            sites_recovered.append({"nama_web": name, "link_web": link_web, "overall_status": "✅ UP"})
 
     _save_state(current_state)
 
-    # --- Send NOTIF for DOWN (if any) ---
+    # notifications
     if sites_to_notify_down:
-        phone_number = f'{PHONE_NUM}'  # WA
-
-        description_down = "⚠️⚠️ Website Down ⚠️⚠️"
-        # WA: inline comma-separated
         status_wa_down = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
-        # Telegram: one per line
         list_web_tele_down = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
+        notifWhatsapp(f"{PHONE_NUM}", "⚠️⚠️ Website Down ⚠️⚠️", status_wa_down)
+        notifTelegram("⚠️⚠️ Website Down ⚠️⚠️", list_web_tele_down)
 
-        notifWhatsapp(phone_number, description_down, status_wa_down)
-        notifTelegram(description_down, list_web_tele_down)
-
-    # --- Send NOTIF for RECOVERED (if any) ---
     if sites_recovered:
-        phone_number = f'{PHONE_NUM}'  # WA
-
-        description_up = "✅ Website UP ✅"
         status_wa_up = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
         list_web_tele_up = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
+        notifWhatsapp(f"{PHONE_NUM}", "✅ Website UP ✅", status_wa_up)
+        notifTelegram("✅ Website UP ✅", list_web_tele_up)
 
-        notifWhatsapp(phone_number, description_up, status_wa_up)
-        notifTelegram(description_up, list_web_tele_up)
-
-    response = make_response(jsonify({
+    return {
         "last_check": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "monitored": monitored
-    }))
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    return response
+    }
+
+
+@app.route("/status")
+def status():
+    try:
+        result = run_monitor_cycle()
+        response = make_response(jsonify(result))
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        return response
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# def status():
+#     try:
+#         sites = load_sites()
+#         print("✅ sites loaded")
+#     except Exception as e:
+#         print("❌ error in /status:", e)
+#         return jsonify({"error": str(e)}), 500
+    
+#     # Keep cache aligned with current sites *every cycle*
+#     state = _load_state()
+#     state = _rehydrate_state_for_sites(state, sites)
+#     _save_state(state)  # optional early save
+
+#     def monitor(site):
+#         # ⬇️ use triple-check with majority vote
+#         statuses, overall_status, avg_response_time = check_site_multi(site["link_web"], site["halaman_web"])
+#         return {
+#             "site_key": _site_key(site),  # carry resolved key forward
+#             "nama_web": site["nama_web"],
+#             "link_web": site["link_web"],
+#             "overall_status": overall_status,
+#             "avg_response_time": avg_response_time,
+#             "statuses": statuses
+#         }
+
+#     # parallel per site, each site does its own 3 sequential attempts
+#     with ThreadPoolExecutor(max_workers=10) as executor:
+#         monitored = list(executor.map(monitor, sites))
+
+#     # --- Notification throttling logic (per-site) ---
+#     sites_to_notify_down = []   # sites that should trigger a DOWN alert this cycle
+#     sites_recovered = []        # sites that transitioned DOWN -> UP this cycle
+    
+#     # Re-load (in case another worker wrote it), then update entries for current run
+#     current_state = _load_state()
+#     current_state = _rehydrate_state_for_sites(current_state, sites)
+
+#     for web in monitored:
+#         key = web["site_key"]
+#         link_web = web["link_web"]
+#         name = web["nama_web"]
+#         is_down = "❌" in web["overall_status"]
+
+#         prev = current_state.get(key, {
+#             "last_status": "UNKNOWN",
+#             "cycles_since_last_notif": NOTIF_COOLDOWN_CYCLES,
+#         })
+        
+#         last_status = prev.get("last_status", "UNKNOWN")
+#         since = int(prev.get("cycles_since_last_notif", NOTIF_COOLDOWN_CYCLES))
+
+#         should_notify_down = False
+#         should_notify_recovered = False
+
+#         if is_down:
+#             if last_status != "DOWN":
+#                 # First time (or after being UP): alert immediately
+#                 should_notify_down = True
+#                 since = 0
+#             else:
+#                 # Still DOWN: only re-alert every N cycles
+#                 since += 1
+#                 if since >= NOTIF_COOLDOWN_CYCLES:
+#                     should_notify_down = True
+#                     since = 0
+#         else:
+#             # Site is UP now
+#             if last_status == "DOWN":
+#                 # Recovered message
+#                 should_notify_recovered = True
+#             # Reset so next DOWN alerts immediately
+#             since = NOTIF_COOLDOWN_CYCLES
+
+#         current_state[key].update({
+#     "nama_web": name,                         # <-- keep name synced
+#     "link_web": link_web,                         # (optional)
+#     "last_status": "DOWN" if is_down else "UP",
+#     "cycles_since_last_notif": since
+# })
+
+#         if should_notify_down:
+#             sites_to_notify_down.append({
+#                 "nama_web": name,
+#                 "link_web": link_web,
+#                 "overall_status": web["overall_status"]
+#             })
+
+#         if should_notify_recovered:
+#             sites_recovered.append({
+#                 "nama_web": name,
+#                 "link_web": link_web,
+#                 "overall_status": "✅ UP"
+#             })
+
+#     _save_state(current_state)
+
+#     # --- Send NOTIF for DOWN (if any) ---
+#     if sites_to_notify_down:
+#         phone_number = f'{PHONE_NUM}'  # WA
+
+#         description_down = "⚠️⚠️ Website Down ⚠️⚠️"
+#         # WA: inline comma-separated
+#         status_wa_down = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
+#         # Telegram: one per line
+#         list_web_tele_down = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
+
+#         notifWhatsapp(phone_number, description_down, status_wa_down)
+#         notifTelegram(description_down, list_web_tele_down)
+
+#     # --- Send NOTIF for RECOVERED (if any) ---
+#     if sites_recovered:
+#         phone_number = f'{PHONE_NUM}'  # WA
+
+#         description_up = "✅ Website UP ✅"
+#         status_wa_up = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
+#         list_web_tele_up = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
+
+#         notifWhatsapp(phone_number, description_up, status_wa_up)
+#         notifTelegram(description_up, list_web_tele_up)
+
+#     response = make_response(jsonify({
+#         "last_check": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+#         "monitored": monitored
+#     }))
+#     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+#     return response
 
 @app.route("/")
 def index():
