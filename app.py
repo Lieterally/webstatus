@@ -62,6 +62,26 @@ STATE_FILE = os.path.join(BASE_DIR, "status_cache.json")  # small local cache
 _state_lock = Lock()
 
 
+LAST_RESULT_FILE = os.path.join(BASE_DIR, "last_result.json")
+
+def _save_json(path, data):
+    with _state_lock:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+
+def _load_json(path, default=None):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return default
+
+def _json_response(payload, code=200):
+    resp = make_response(jsonify(payload), code)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    return resp
+
+
 def _load_state():
     """Load or init the cache that tracks last status & notify cooldown per site."""
     try:
@@ -344,13 +364,32 @@ def run_monitor_cycle():
 
 @app.route("/status")
 def status():
-    try:
+    # ?force=1 will run a fresh cycle; otherwise serve cached data
+    if request.args.get("force") == "1":
+        try:
+            result = run_monitor_cycle()
+            _save_json(LAST_RESULT_FILE, result)
+            return _json_response(result)
+        except Exception as e:
+            return _json_response({"error": str(e)}, 500)
+
+    # default: cached
+    data = _load_json(LAST_RESULT_FILE)
+    if not data:
+        # if nothing cached yet, you can either 503 or run once:
+        # return _json_response({"error": "no cached result yet"}, 503)
         result = run_monitor_cycle()
-        response = make_response(jsonify(result))
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-        return response
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        _save_json(LAST_RESULT_FILE, result)
+        return _json_response(result)
+
+    return _json_response(data)
+
+@app.route("/status_cached")
+def status_cached():
+    data = _load_json(LAST_RESULT_FILE, {})
+    if not data:
+        return _json_response({"error": "no cached result yet"}, 404)
+    return _json_response(data)
 
 # def status():
 #     try:
