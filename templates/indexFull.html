@@ -166,8 +166,7 @@
 
         try {
           console.log("🔄 Fetching /status...");
-          // const response = await fetch("/status", { cache: "no-store" });
-          const response = await fetch("/status_cached?ts=" + Date.now(), { cache: "no-store" });
+          const response = await fetch("/status", { cache: "no-store" });
           const data = await response.json();
           console.log("✅ Data received:", data);
 
