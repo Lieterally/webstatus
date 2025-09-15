@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, redirect, url_for, request, f
 from flask_wtf.csrf import CSRFProtect
 from slugify import slugify
 import requests
+
 import os
 from flask_migrate import Migrate
 import json
@@ -24,6 +25,8 @@ from notifWhatsapp import notifWhatsapp
 from notifTelegram import notifTelegram
 from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from threading import Thread
+from datetime import timedelta
 from config import SQLALCHEMY_DATABASE_URI, SECRET_KEY, PHONE_NUM
 
 migrate = Migrate()
@@ -61,6 +64,11 @@ NOTIF_COOLDOWN_CYCLES = 6         # re-notify if still down after 6 cycles
 STATE_FILE = os.path.join(BASE_DIR, "status_cache.json")  # small local cache
 _state_lock = Lock()
 
+INTERVAL_SECONDS = 600  # 10 minutes
+LATEST_STATUS = {"last_check": None, "monitored": []}
+NEXT_RUN_AT = None
+_bg_state_lock = Lock()
+_scheduler_started = False
 
 def _load_state():
     """Load or init the cache that tracks last status & notify cooldown per site."""
@@ -249,25 +257,25 @@ def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_p
     return statuses_for_ui, overall_status, final_avg_time
 
 
-@app.route("/status")
-def status():
+def monitor_and_notify_once():
+    # === this is literally your current /status body, but returning a snapshot ===
     try:
         sites = load_sites()
         print("✅ sites loaded")
     except Exception as e:
-        print("❌ error in /status:", e)
-        return jsonify({"error": str(e)}), 500
-    
-    # Keep cache aligned with current sites *every cycle*
+        print("❌ error in monitor cycle:", e)
+        # keep last snapshot; bail out
+        return
+
+    # Keep cache aligned each cycle
     state = _load_state()
     state = _rehydrate_state_for_sites(state, sites)
-    _save_state(state)  # optional early save
+    _save_state(state)
 
     def monitor(site):
-        # ⬇️ use triple-check with majority vote
         statuses, overall_status, avg_response_time = check_site_multi(site["link_web"], site["halaman_web"])
         return {
-            "site_key": _site_key(site),  # carry resolved key forward
+            "site_key": _site_key(site),
             "nama_web": site["nama_web"],
             "link_web": site["link_web"],
             "overall_status": overall_status,
@@ -275,15 +283,12 @@ def status():
             "statuses": statuses
         }
 
-    # parallel per site, each site does its own 3 sequential attempts
     with ThreadPoolExecutor(max_workers=10) as executor:
         monitored = list(executor.map(monitor, sites))
 
-    # --- Notification throttling logic (per-site) ---
-    sites_to_notify_down = []   # sites that should trigger a DOWN alert this cycle
-    sites_recovered = []        # sites that transitioned DOWN -> UP this cycle
-    
-    # Re-load (in case another worker wrote it), then update entries for current run
+    sites_to_notify_down = []
+    sites_recovered = []
+
     current_state = _load_state()
     current_state = _rehydrate_state_for_sites(current_state, sites)
 
@@ -297,7 +302,6 @@ def status():
             "last_status": "UNKNOWN",
             "cycles_since_last_notif": NOTIF_COOLDOWN_CYCLES,
         })
-        
         last_status = prev.get("last_status", "UNKNOWN")
         since = int(prev.get("cycles_since_last_notif", NOTIF_COOLDOWN_CYCLES))
 
@@ -306,29 +310,24 @@ def status():
 
         if is_down:
             if last_status != "DOWN":
-                # First time (or after being UP): alert immediately
                 should_notify_down = True
                 since = 0
             else:
-                # Still DOWN: only re-alert every N cycles
                 since += 1
                 if since >= NOTIF_COOLDOWN_CYCLES:
                     should_notify_down = True
                     since = 0
         else:
-            # Site is UP now
             if last_status == "DOWN":
-                # Recovered message
                 should_notify_recovered = True
-            # Reset so next DOWN alerts immediately
             since = NOTIF_COOLDOWN_CYCLES
 
         current_state[key].update({
-    "nama_web": name,                         # <-- keep name synced
-    "link_web": link_web,                         # (optional)
-    "last_status": "DOWN" if is_down else "UP",
-    "cycles_since_last_notif": since
-})
+            "nama_web": name,
+            "link_web": link_web,
+            "last_status": "DOWN" if is_down else "UP",
+            "cycles_since_last_notif": since
+        })
 
         if should_notify_down:
             sites_to_notify_down.append({
@@ -336,7 +335,6 @@ def status():
                 "link_web": link_web,
                 "overall_status": web["overall_status"]
             })
-
         if should_notify_recovered:
             sites_recovered.append({
                 "nama_web": name,
@@ -346,36 +344,81 @@ def status():
 
     _save_state(current_state)
 
-    # --- Send NOTIF for DOWN (if any) ---
+    # Notifs
     if sites_to_notify_down:
-        phone_number = f'{PHONE_NUM}'  # WA
-
+        phone_number = f'{PHONE_NUM}'
         description_down = "⚠️⚠️ Website Down ⚠️⚠️"
-        # WA: inline comma-separated
         status_wa_down = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
-        # Telegram: one per line
         list_web_tele_down = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
-
         notifWhatsapp(phone_number, description_down, status_wa_down)
         notifTelegram(description_down, list_web_tele_down)
 
-    # --- Send NOTIF for RECOVERED (if any) ---
     if sites_recovered:
-        phone_number = f'{PHONE_NUM}'  # WA
-
+        phone_number = f'{PHONE_NUM}'
         description_up = "✅ Website UP ✅"
         status_wa_up = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
         list_web_tele_up = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
-
         notifWhatsapp(phone_number, description_up, status_wa_up)
         notifTelegram(description_up, list_web_tele_up)
 
-    response = make_response(jsonify({
+    # Save snapshot for the UI to read
+    snapshot = {
         "last_check": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "monitored": monitored
-    }))
+        "monitored": monitored,
+    }
+    with _bg_state_lock:
+        global LATEST_STATUS, NEXT_RUN_AT
+        LATEST_STATUS = snapshot
+        NEXT_RUN_AT = datetime.now() + timedelta(seconds=INTERVAL_SECONDS)
+
+def _background_runner():
+    # First run immediately so the UI has fresh data as soon as app starts
+    try:
+        monitor_and_notify_once()
+    except Exception as e:
+        print("❌ initial background cycle error:", e)
+
+    while True:
+        start = time.time()
+        try:
+            monitor_and_notify_once()
+        except Exception as e:
+            print("❌ background cycle error:", e)
+        # sleep the remainder of the 10-minute interval
+        elapsed = time.time() - start
+        time.sleep(max(0, INTERVAL_SECONDS - elapsed))
+
+def _start_background_once():
+    global _scheduler_started
+    if _scheduler_started:
+        return
+    _scheduler_started = True
+    Thread(target=_background_runner, daemon=True).start()
+
+# Start the background thread right after the app is created & configured.
+# Guard against the Flask debug reloader double-spawn.
+if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
+    _start_background_once()
+
+
+@app.route("/status")
+def status():
+    with _bg_state_lock:
+        data = dict(LATEST_STATUS)  # shallow copy
+        nra = NEXT_RUN_AT
+
+    if nra is not None:
+        seconds_left = max(0, int((nra - datetime.now()).total_seconds()))
+        data["next_run_at"] = nra.strftime("%Y-%m-%d %H:%M:%S")
+        data["seconds_until_next"] = seconds_left
+    else:
+        data["next_run_at"] = None
+        data["seconds_until_next"] = None
+
+    response = make_response(jsonify(data))
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return response
+
 
 @app.route("/")
 def index():
@@ -392,4 +435,4 @@ def indexFull():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

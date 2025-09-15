@@ -155,58 +155,62 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
-      const intervalSeconds = 600;
-      let countdown = intervalSeconds;
+      // const intervalSeconds = 600;
+      // let countdown = intervalSeconds;
       let countdownTimer;
 
       async function loadStatus() {
-        document.getElementById("loading-overlay").style.display = "flex"; // Show loading
+        // Show overlay & reset countdown UI
+        document.getElementById("loading-overlay").style.display = "flex";
         document.getElementById("next-check").innerText = "Refreshing...";
         clearInterval(countdownTimer);
 
         try {
-          console.log("🔄 Fetching /status...");
-          const response = await fetch("/status", { cache: "no-store" });
+          // Cache-bust to ensure we always read the latest snapshot
+          const response = await fetch(`/status?ts=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
-          console.log("✅ Data received:", data);
 
-          document.getElementById("last-check").innerText = data.last_check;
+          // Update "last checked"
+          document.getElementById("last-check").innerText = data.last_check || "—";
 
           const summaryBody = document.getElementById("summary-table");
           const summaryBody2 = document.getElementById("summary-table-2");
           const detailsContainer = document.getElementById("details-container");
 
+          // Clear previous content
           detailsContainer.innerHTML = "";
 
-          const half = Math.ceil(data.monitored.length / 2); // split for 2 tables
-
-          // Destroy DataTables before repopulating
+          // Destroy DataTables if already initialized
           if ($.fn.DataTable.isDataTable("#dataTable")) {
             const dt1 = $("#dataTable").DataTable();
-            dt1.clear().destroy(); // clear rows + destroy
+            dt1.clear().destroy();
           }
           if ($.fn.DataTable.isDataTable("#dataTable2")) {
             const dt2 = $("#dataTable2").DataTable();
-            dt2.clear().destroy(); // clear rows + destroy
+            dt2.clear().destroy();
           }
 
-          // Also clear HTML manually in case table is not initialized
+          // Clear raw table bodies
           summaryBody.innerHTML = "";
           summaryBody2.innerHTML = "";
 
-          data.monitored.forEach((site, index) => {
-            // Build summary row
+          const items = Array.isArray(data.monitored) ? data.monitored : [];
+          const half = Math.ceil(items.length / 2);
+
+          // Populate tables + details
+          items.forEach((site, index) => {
             const row = document.createElement("tr");
-            if (site.overall_status.includes("❌")) {
+            if ((site.overall_status || "").includes("❌")) {
               row.classList.add("table-danger");
             }
             row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${site.nama_web}</td>
-          <td><a href="${site.link_web}" target="_blank">${site.link_web}</a></td>
-          <td>${site.overall_status}</td>
-          <td>${site.avg_response_time}</td>
-        `;
+        <td>${index + 1}</td>
+        <td>${site.nama_web}</td>
+        <td><a href="${site.link_web}" target="_blank" rel="noopener">${site.link_web}</a></td>
+        <td>${site.overall_status}</td>
+        <td>${site.avg_response_time}</td>
+      `;
 
             if (index < half) {
               summaryBody.appendChild(row);
@@ -214,48 +218,35 @@
               summaryBody2.appendChild(row);
             }
 
-            // Build detail section
             let detailHTML = `
-          <h5 class="mt-4">${site.nama_web} — <a href="${site.link_web}" target="_blank">${site.link_web}</a></h5>
-          <table class="table table-hover table-sm mb-5">
-            <thead>
-              <tr>
-                <th>Menu URL</th>
-                <th>Status</th>
-                <th>Response Time (s)</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-            site.statuses.forEach((entry) => {
-              detailHTML += `
+        <h5 class="mt-4">${site.nama_web} — <a href="${site.link_web}" target="_blank" rel="noopener">${site.link_web}</a></h5>
+        <table class="table table-hover table-sm mb-5">
+          <thead>
             <tr>
-              <td><a href="${entry.url}" target="_blank">${entry.url}</a></td>
-              <td>${entry.status}</td>
-              <td>${entry.response_time}</td>
+              <th>Menu URL</th>
+              <th>Status</th>
+              <th>Response Time (s)</th>
             </tr>
-          `;
+          </thead>
+          <tbody>
+      `;
+            (site.statuses || []).forEach((entry) => {
+              detailHTML += `
+          <tr>
+            <td><a href="${entry.url}" target="_blank" rel="noopener">${entry.url}</a></td>
+            <td>${entry.status}</td>
+            <td>${entry.response_time}</td>
+          </tr>
+        `;
             });
             detailHTML += "</tbody></table>";
-            detailsContainer.innerHTML += detailHTML;
+            detailsContainer.insertAdjacentHTML("beforeend", detailHTML);
           });
 
-          // Reinitialize DataTables with balanced page lengths
+          // Re-init DataTables
           $("#dataTable").DataTable({
             autoWidth: false,
-            pageLength: half,
-            columnDefs: [
-              { width: "3%", targets: 0 }, // #
-              { width: "25%", targets: 1 }, // Unit
-              { width: "30%", targets: 2 }, // Link
-              { width: "15%", targets: 3 }, // Status
-              { width: "27%", targets: 4 }, // Avg. Response Time
-            ],
-          });
-
-          $("#dataTable2").DataTable({
-            autoWidth: false,
-            pageLength: data.monitored.length - half,
+            pageLength: half || 5,
             columnDefs: [
               { width: "3%", targets: 0 },
               { width: "25%", targets: 1 },
@@ -265,28 +256,44 @@
             ],
           });
 
-          countdown = intervalSeconds;
-          startCountdown();
+          $("#dataTable2").DataTable({
+            autoWidth: false,
+            pageLength: Math.max(0, items.length - half) || 5,
+            columnDefs: [
+              { width: "3%", targets: 0 },
+              { width: "25%", targets: 1 },
+              { width: "30%", targets: 2 },
+              { width: "15%", targets: 3 },
+              { width: "27%", targets: 4 },
+            ],
+          });
+
+          // ⏱ Use the server-provided countdown, not a hard-coded 600s
+          const secondsLeft = Number.isInteger(data.seconds_until_next) ? data.seconds_until_next : 0;
+          startCountdown(secondsLeft);
         } catch (error) {
           console.error("❌ Failed to load status:", error);
+          document.getElementById("next-check").innerText = "Error";
         } finally {
-          document.getElementById("loading-overlay").style.display = "none"; // Hide loading
+          // Hide overlay
+          document.getElementById("loading-overlay").style.display = "none";
         }
       }
 
-      function startCountdown() {
-        const endTime = Date.now() + intervalSeconds * 1000;
+      function startCountdown(secondsLeft) {
         clearInterval(countdownTimer);
+        const endTime = Date.now() + secondsLeft * 1000;
+
         countdownTimer = setInterval(() => {
-          const now = Date.now();
-          const secondsLeft = Math.max(0, Math.floor((endTime - now) / 1000));
-          const minutes = Math.floor(secondsLeft / 60);
-          const seconds = secondsLeft % 60;
+          const s = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+          const m = Math.floor(s / 60);
+          const r = s % 60;
 
-          document.getElementById("next-check").innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+          document.getElementById("next-check").innerText = `${m}:${r.toString().padStart(2, "0")}`;
 
-          if (secondsLeft <= 0) {
+          if (s <= 0) {
             clearInterval(countdownTimer);
+            // Just refresh the snapshot; this does NOT trigger a new cycle
             loadStatus();
           }
         }, 1000);

@@ -121,8 +121,8 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
-      const intervalSeconds = 600;
-      let countdown = intervalSeconds;
+      // const intervalSeconds = 600;
+      // let countdown = intervalSeconds;
       let countdownTimer;
 
       async function loadStatus() {
@@ -132,13 +132,11 @@
 
         try {
           console.log("🔄 Fetching /status...");
-          const response = await fetch("/status", {
-            cache: "no-store",
-          });
+          const response = await fetch(`/status?ts=${Date.now()}`, { cache: "no-store" });
           const data = await response.json();
           console.log("✅ Data received:", data);
 
-          document.getElementById("last-check").innerText = data.last_check;
+          document.getElementById("last-check").innerText = data.last_check || "—";
 
           if ($.fn.DataTable.isDataTable("#dataTable")) {
             const dt = $("#dataTable").DataTable();
@@ -207,28 +205,32 @@
             ],
           });
 
-          countdown = intervalSeconds;
-          startCountdown();
+          // ⏱ Use the server-provided countdown, not a hard-coded 600s
+          const secondsLeft = Number.isInteger(data.seconds_until_next) ? data.seconds_until_next : 0;
+          startCountdown(secondsLeft);
         } catch (error) {
           console.error("❌ Failed to load status:", error);
+          document.getElementById("next-check").innerText = "Error";
         } finally {
-          document.getElementById("loading-overlay").style.display = "none"; // Hide loading
+          // Hide overlay
+          document.getElementById("loading-overlay").style.display = "none";
         }
       }
 
-      function startCountdown() {
-        const endTime = Date.now() + intervalSeconds * 1000;
+      function startCountdown(secondsLeft) {
         clearInterval(countdownTimer);
+        const endTime = Date.now() + secondsLeft * 1000;
+
         countdownTimer = setInterval(() => {
-          const now = Date.now();
-          const secondsLeft = Math.max(0, Math.floor((endTime - now) / 1000));
-          const minutes = Math.floor(secondsLeft / 60);
-          const seconds = secondsLeft % 60;
+          const s = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+          const m = Math.floor(s / 60);
+          const r = s % 60;
 
-          document.getElementById("next-check").innerText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+          document.getElementById("next-check").innerText = `${m}:${r.toString().padStart(2, "0")}`;
 
-          if (secondsLeft <= 0) {
+          if (s <= 0) {
             clearInterval(countdownTimer);
+            // Just refresh the snapshot; this does NOT trigger a new cycle
             loadStatus();
           }
         }, 1000);
