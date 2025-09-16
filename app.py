@@ -344,21 +344,20 @@ def monitor_and_notify_once():
         NEXT_RUN_AT = datetime.now() + timedelta(seconds=INTERVAL_SECONDS)
 
 def _background_runner():
-    # First run immediately so the UI has fresh data as soon as app starts
+    # Run once immediately so the UI has data
     try:
         monitor_and_notify_once()
     except Exception as e:
         print("❌ initial background cycle error:", e)
 
+    # Then wait full interval between subsequent runs
     while True:
-        start = time.time()
+        time.sleep(INTERVAL_SECONDS)
         try:
             monitor_and_notify_once()
         except Exception as e:
             print("❌ background cycle error:", e)
-        # sleep the remainder of the 10-minute interval
-        elapsed = time.time() - start
-        time.sleep(max(0, INTERVAL_SECONDS - elapsed))
+
 
 def _start_background_once():
     global _scheduler_started
