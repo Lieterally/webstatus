@@ -205,56 +205,28 @@ def check_site(link_web, halaman_web):
 
     return statuses, overall_status, avg_response_time
 
-def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_pause=0.2):
+def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_pause=1):
     """
-    Run multiple checks in a row and decide by majority (>=2 of 3).
-    Pages are marked DOWN if they are DOWN in >=2 attempts.
+    Run N checks in a row (default 3). The cycle's final result is whatever the
+    Nth (third) check returns. Earlier attempts are ignored for UP/DOWN decision.
     """
-    attempt_results = []
-    avg_times = []
+    last_statuses = None
+    last_overall_status = None
+    last_avg_response_time = None
 
-    for _ in range(repeats):
+    for i in range(repeats):
         statuses, overall_status, avg_response_time = check_site(link_web, halaman_web)
-        attempt_results.append((statuses, overall_status))
-        if isinstance(avg_response_time, (int, float)):
-            avg_times.append(avg_response_time)
-        if per_attempt_pause:
-            time.sleep(per_attempt_pause)  # tiny pause between attempts (optional)
+        last_statuses = statuses
+        last_overall_status = overall_status
+        last_avg_response_time = avg_response_time
 
-    # Majority decision for site
-    downs = sum(1 for _, overall in attempt_results if "❌" in overall)
-    final_is_down = downs >= ((repeats // 2) + 1)
+        # small pause between attempts, but not after the last one
+        if per_attempt_pause and i < repeats - 1:
+            time.sleep(per_attempt_pause)
 
-    # Majority decision per-page
-    page_down_counter = Counter()
-    for statuses, overall in attempt_results:
-        # any "DOWN" or non-200 page within this attempt increments the page counter
-        for s in statuses:
-            st = s["status"]
-            if st.startswith("❌") or st.startswith("⚠️"):
-                # add by path part only (after domain), since s["url"] is full
-                try:
-                    page_down_counter[s["url"].replace(link_web, "", 1)] += 1
-                except Exception:
-                    pass
+    # Return ONLY the final (third) attempt's results
+    return last_statuses, last_overall_status, last_avg_response_time
 
-    down_pages_majority = sorted([p for p, c in page_down_counter.items() if c >= ((repeats // 2) + 1)])
-
-    if final_is_down:
-        if down_pages_majority:
-            overall_status = f"❌ DOWN ({', '.join(down_pages_majority)})"
-        else:
-            overall_status = "❌ DOWN"
-    else:
-        overall_status = "✅ UP"
-
-    # Median response time for stability
-    final_avg_time = round(median(avg_times), 3) if avg_times else "N/A"
-
-    # Merge one set of statuses to show in UI (use the last attempt for simplicity)
-    statuses_for_ui = attempt_results[-1][0]
-
-    return statuses_for_ui, overall_status, final_avg_time
 
 
 def monitor_and_notify_once():

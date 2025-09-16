@@ -272,8 +272,8 @@
   "46": {
     "nama_web": "Pilrek ITK",
     "link_web": "https://pilrek.itk.ac.id",
-    "last_status": "UP",
-    "cycles_since_last_notif": 6
+    "last_status": "DOWN",
+    "cycles_since_last_notif": 5
   },
   "47": {
     "nama_web": "Unit Layanan Terpadu",
