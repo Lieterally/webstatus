@@ -447,6 +447,12 @@ def indexFull():
     return render_template("indexFull.html")
 
 
+@app.before_first_request
+def _kick_off_bg():
+    # Start the background scheduler the first time this worker handles a request
+    _start_background_once()
+
+
 if __name__ == "__main__":
     # _prime_next_run_if_needed()
     _start_background_once()
