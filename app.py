@@ -41,7 +41,6 @@ app.secret_key = f'{SECRET_KEY}'
 # (Optional) consistent names for constraints – helps Alembic on MySQL
 
 
-
 db.init_app(app)
 migrate.init_app(app, db)
 
@@ -70,6 +69,7 @@ NEXT_RUN_AT = None
 _bg_state_lock = Lock()
 _scheduler_started = False
 
+
 def _load_state():
     """Load or init the cache that tracks last status & notify cooldown per site."""
     try:
@@ -89,11 +89,12 @@ def _save_state(state):
                 json.dump(state, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
-    
+
 
 def _site_key(site: dict) -> str:
     """Prefer a stable ID if present; otherwise fall back to link."""
     return str(site.get("id_web") or site["link_web"])
+
 
 def _rehydrate_state_for_sites(state: dict, sites: list[dict]) -> dict:
     """
@@ -106,7 +107,8 @@ def _rehydrate_state_for_sites(state: dict, sites: list[dict]) -> dict:
         prev = state.get(key, {})
         new_state[key] = {
             "nama_web": s["nama_web"],                         # <-- stored
-            "link_web": s["link_web"],                         # (optional but handy)
+            # (optional but handy)
+            "link_web": s["link_web"],
             "last_status": prev.get("last_status", "UNKNOWN"),
             "cycles_since_last_notif": int(prev.get("cycles_since_last_notif", NOTIF_COOLDOWN_CYCLES)),
         }
@@ -121,7 +123,6 @@ def _rehydrate_state_for_sites(state: dict, sites: list[dict]) -> dict:
 # def load_sites():
 #     with open(os.path.join(BASE_DIR, "sites.json")) as f:
 #         return json.load(f)
-
 
 
 # When using db --------------------
@@ -143,14 +144,13 @@ def load_sites():
                 "halaman_web": [page.halaman_web for page in site.pages]
             })
         return sites
-    
-    
+
+
 def count_sites():
-    
+
     websites = Website.query.all()
     sites = len(websites)
     return sites
-
 
 
 def check_site(link_web, halaman_web):
@@ -159,17 +159,17 @@ def check_site(link_web, halaman_web):
     count = 0
     # down_detected = False
     down_pages = []
-  
+
     headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
     }
 
     for halaman in halaman_web:
         url = link_web + halaman
         try:
-            
+
             r = requests.get(url, headers=headers, timeout=5, verify=False)
-            
+
             elapsed = r.elapsed.total_seconds()
             # print(f"⏱️ Checked {url} in {elapsed} seconds")
             total_time += elapsed
@@ -191,9 +191,9 @@ def check_site(link_web, halaman_web):
             "status": status,
             "response_time": round(elapsed, 3)
         })
-        
-        # print(statuses)
-        
+
+        print(statuses)
+
     # overall_status = "✅ UP" if not down_detected else "❌ DOWN"
 
     if not down_pages:
@@ -205,6 +205,7 @@ def check_site(link_web, halaman_web):
 
     return statuses, overall_status, avg_response_time
 
+
 def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_pause=1):
     """
     Run N checks in a row (default 3). The cycle's final result is whatever the
@@ -215,7 +216,8 @@ def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_p
     last_avg_response_time = None
 
     for i in range(repeats):
-        statuses, overall_status, avg_response_time = check_site(link_web, halaman_web)
+        statuses, overall_status, avg_response_time = check_site(
+            link_web, halaman_web)
         last_statuses = statuses
         last_overall_status = overall_status
         last_avg_response_time = avg_response_time
@@ -226,7 +228,6 @@ def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_p
 
     # Return ONLY the final (third) attempt's results
     return last_statuses, last_overall_status, last_avg_response_time
-
 
 
 def monitor_and_notify_once():
@@ -245,7 +246,8 @@ def monitor_and_notify_once():
     _save_state(state)
 
     def monitor(site):
-        statuses, overall_status, avg_response_time = check_site_multi(site["link_web"], site["halaman_web"])
+        statuses, overall_status, avg_response_time = check_site_multi(
+            site["link_web"], site["halaman_web"])
         return {
             "site_key": _site_key(site),
             "nama_web": site["nama_web"],
@@ -320,16 +322,20 @@ def monitor_and_notify_once():
     if sites_to_notify_down:
         phone_number = f'{PHONE_NUM}'
         description_down = "⚠️⚠️ Website Down ⚠️⚠️"
-        status_wa_down = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
-        list_web_tele_down = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
+        status_wa_down = ", ".join(
+            [f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
+        list_web_tele_down = "\n".join(
+            [f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
         notifWhatsapp(phone_number, description_down, status_wa_down)
         notifTelegram(description_down, list_web_tele_down)
 
     if sites_recovered:
         phone_number = f'{PHONE_NUM}'
         description_up = "✅ Website UP ✅"
-        status_wa_up = ", ".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
-        list_web_tele_up = "\n".join([f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
+        status_wa_up = ", ".join(
+            [f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
+        list_web_tele_up = "\n".join(
+            [f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
         notifWhatsapp(phone_number, description_up, status_wa_up)
         notifTelegram(description_up, list_web_tele_up)
 
@@ -342,6 +348,7 @@ def monitor_and_notify_once():
         global LATEST_STATUS, NEXT_RUN_AT
         LATEST_STATUS = snapshot
         NEXT_RUN_AT = datetime.now() + timedelta(seconds=INTERVAL_SECONDS)
+
 
 def _background_runner():
     # Run once immediately so the UI has data
@@ -366,14 +373,20 @@ def _start_background_once():
     _scheduler_started = True
     Thread(target=_background_runner, daemon=True).start()
 
-# Start the background thread right after the app is created & configured.
-# Guard against the Flask debug reloader double-spawn.
-if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
-    _start_background_once()
+
+# helper
+def _prime_next_run_if_needed():
+    global NEXT_RUN_AT
+    if NEXT_RUN_AT is None:
+        # don't run a full monitor cycle here; just give the UI a countdown
+        NEXT_RUN_AT = datetime.now() + timedelta(seconds=INTERVAL_SECONDS)
 
 
 @app.route("/status")
 def status():
+
+    _prime_next_run_if_needed()
+
     with _bg_state_lock:
         data = dict(LATEST_STATUS)  # shallow copy
         nra = NEXT_RUN_AT
@@ -391,6 +404,34 @@ def status():
     return response
 
 
+@csrf.exempt
+@app.route("/status/refresh", methods=["GET"])
+def status_refresh():
+    """
+    Force-run a monitoring cycle NOW, then return the same payload shape as /status.
+    CSRF-exempt so the button can call it without a token.
+    """
+    try:
+        monitor_and_notify_once()
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+    with _bg_state_lock:
+        data = dict(LATEST_STATUS)
+        nra = NEXT_RUN_AT
+
+    if nra is not None:
+        seconds_left = max(0, int((nra - datetime.now()).total_seconds()))
+        data["next_run_at"] = nra.strftime("%Y-%m-%d %H:%M:%S")
+        data["seconds_until_next"] = seconds_left
+    else:
+        data["next_run_at"] = None
+        data["seconds_until_next"] = None
+
+    data["ok"] = True
+    return make_response(jsonify(data), 200)
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -400,10 +441,13 @@ def index():
 def dashboardtest():
     return render_template("dashboard.html")
 
+
 @app.route("/full")
 def indexFull():
     return render_template("indexFull.html")
 
 
 if __name__ == "__main__":
+    # _prime_next_run_if_needed()
+    _start_background_once()
     app.run(debug=True, use_reloader=False)

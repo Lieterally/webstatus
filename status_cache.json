@@ -98,8 +98,8 @@
   "17": {
     "nama_web": "Prodi Ilmu Aktuaria",
     "link_web": "https://actsci.itk.ac.id",
-    "last_status": "UP",
-    "cycles_since_last_notif": 6
+    "last_status": "DOWN",
+    "cycles_since_last_notif": 2
   },
   "18": {
     "nama_web": "Prodi Teknik Pangan",
@@ -128,8 +128,8 @@
   "22": {
     "nama_web": "Repository",
     "link_web": "https://repository.itk.ac.id",
-    "last_status": "UP",
-    "cycles_since_last_notif": 6
+    "last_status": "DOWN",
+    "cycles_since_last_notif": 2
   },
   "23": {
     "nama_web": "Perpustakaan",
@@ -272,8 +272,8 @@
   "46": {
     "nama_web": "Pilrek ITK",
     "link_web": "https://pilrek.itk.ac.id",
-    "last_status": "DOWN",
-    "cycles_since_last_notif": 5
+    "last_status": "UP",
+    "cycles_since_last_notif": 6
   },
   "47": {
     "nama_web": "Unit Layanan Terpadu",
@@ -374,6 +374,12 @@
   "63": {
     "nama_web": "Lab Terpadu",
     "link_web": "http://labterpadu.itk.ac.id",
+    "last_status": "UP",
+    "cycles_since_last_notif": 6
+  },
+  "64": {
+    "nama_web": "vvxcv",
+    "link_web": "https://www.facebook.com",
     "last_status": "UP",
     "cycles_since_last_notif": 6
   }

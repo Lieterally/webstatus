@@ -58,7 +58,10 @@
     <div class="container">
       <div class="card shadow mb-4 text-center position-relative p-3">
         <h2 class="m-0 font-weight-bold text-primary">MONITORING WEB ITK</h2>
-        <a class="btn btn-primary position-absolute" href="/login" style="right: 1rem"><i class="fas fa-user fa-sm text-white-50"></i> Admin </a>
+        <div class="btn-group position-absolute" style="right: 1rem">
+          <button id="btnRefreshNow" class="btn btn-outline-primary" type="button" title="Refresh now"><i class="fas fa-sync-alt fa-sm"></i> Refresh</button>
+          <a class="btn btn-primary" href="/login" title="Admin"> <i class="fas fa-user fa-sm text-white-50"></i> Admin </a>
+        </div>
       </div>
 
       <div id="loading-overlay">
@@ -131,12 +134,21 @@
         clearInterval(countdownTimer);
 
         try {
-          console.log("🔄 Fetching /status...");
           const response = await fetch(`/status?ts=${Date.now()}`, { cache: "no-store" });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
-          console.log("✅ Data received:", data);
 
           document.getElementById("last-check").innerText = data.last_check || "—";
+
+          const item_data = Array.isArray(data.monitored) ? data.monitored : [];
+
+          // ⛔️ NEW: If there's no data yet, keep the overlay and retry soon.
+          if (item_data.length === 0) {
+            document.getElementById("next-check").innerText = "Refreshing...";
+            // do NOT start countdown; just poll again after a short delay
+            setTimeout(loadStatus, 3000);
+            return; // stop here — no table / DataTable init
+          }
 
           if ($.fn.DataTable.isDataTable("#dataTable")) {
             const dt = $("#dataTable").DataTable();
@@ -149,10 +161,13 @@
           const detailsContainer = document.getElementById("details-container");
           detailsContainer.innerHTML = "";
 
-          data.monitored.forEach((site, index) => {
+          const items = Array.isArray(data.monitored) ? data.monitored : [];
+
+          items.forEach((site, index) => {
             const row = document.createElement("tr");
-            const isDown = site.overall_status.startsWith("❌");
-            if (isDown) row.classList.add("table-danger");
+            if ((site.overall_status || "").includes("❌")) {
+              row.classList.add("table-danger");
+            }
 
             row.innerHTML = `
     <td>${index + 1}</td>
@@ -205,15 +220,27 @@
             ],
           });
 
-          // ⏱ Use the server-provided countdown, not a hard-coded 600s
-          const secondsLeft = Number.isInteger(data.seconds_until_next) ? data.seconds_until_next : 0;
-          startCountdown(secondsLeft);
+          // ✅ Only start countdown when we actually have data
+          const secondsLeft = Number.isInteger(data.seconds_until_next) && data.seconds_until_next > 0 ? data.seconds_until_next : null;
+
+          if (secondsLeft == null) {
+            document.getElementById("next-check").innerText = "—";
+          } else {
+            startCountdown(secondsLeft);
+          }
         } catch (error) {
           console.error("❌ Failed to load status:", error);
           document.getElementById("next-check").innerText = "Error";
+          // Keep overlay visible and retry gently
+          setTimeout(loadStatus, 5000);
+          return;
         } finally {
-          // Hide overlay
-          document.getElementById("loading-overlay").style.display = "none";
+          // Hide overlay ONLY when we have data in the tables
+          // (If we early-returned for no data, we never reach this.)
+          const itemsExist = document.querySelectorAll("#summary-table tr").length + document.querySelectorAll("#summary-table-2 tr").length > 0;
+          if (itemsExist) {
+            document.getElementById("loading-overlay").style.display = "none";
+          }
         }
       }
 
@@ -238,6 +265,49 @@
 
       // Initial load
       document.addEventListener("DOMContentLoaded", loadStatus);
+
+      async function refreshNow() {
+        const btn = document.getElementById("btnRefreshNow");
+        if (!btn) return;
+        try {
+          // UI state
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-sync fa-spin fa-sm"></i> Refreshing';
+          document.getElementById("loading-overlay").style.display = "flex";
+
+          // Hit the refresh endpoint
+          const res = await fetch("/status/refresh?ts=" + Date.now(), {
+            method: "GET",
+            cache: "no-store",
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+
+          // Re-pull the latest snapshot so tables + countdown update
+          await loadStatus();
+        } catch (e) {
+          console.error("Refresh failed:", e);
+          alert("Refresh failed: " + e.message);
+          // fall back to a simple reload of the snapshot even on error
+          try {
+            await loadStatus();
+          } catch {}
+        } finally {
+          // restore UI
+          document.getElementById("loading-overlay").style.display = "none";
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-sync-alt fa-sm"></i> Refresh';
+        }
+      }
+
+      // Hook up the button
+      document.addEventListener("DOMContentLoaded", () => {
+        const btn = document.getElementById("btnRefreshNow");
+        if (btn) btn.addEventListener("click", refreshNow);
+      });
     </script>
   </body>
 </html>
