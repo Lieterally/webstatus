@@ -161,102 +161,77 @@
       // const intervalSeconds = 600;
       // let countdown = intervalSeconds;
       let countdownTimer;
+      let lastSnapshotAt = null;
 
       async function loadStatus() {
-        // Show overlay & reset countdown UI
+        // Always show overlay when we "refresh"
         document.getElementById("loading-overlay").style.display = "flex";
         document.getElementById("next-check").innerText = "Refreshing...";
         clearInterval(countdownTimer);
 
         try {
-          // Cache-bust to ensure we always read the latest snapshot
           const response = await fetch(`/status?ts=${Date.now()}`, { cache: "no-store" });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
 
-          // Update "last checked"
-          document.getElementById("last-check").innerText = data.last_check || "—";
+          const items = Array.isArray(data.monitored) ? data.monitored : [];
+          const lc = data.last_check || null;
 
-          const item_data = Array.isArray(data.monitored) ? data.monitored : [];
-
-          // ⛔️ NEW: If there's no data yet, keep the overlay and retry soon.
-          if (item_data.length === 0) {
-            document.getElementById("next-check").innerText = "Refreshing...";
-            // do NOT start countdown; just poll again after a short delay
-            setTimeout(loadStatus, 3000);
-            return; // stop here — no table / DataTable init
+          // 🔄 If no snapshot yet OR still the same snapshot as last time, keep spinner and try again soon
+          if (!lc || (lastSnapshotAt && lc === lastSnapshotAt) || items.length === 0) {
+            // don't touch the tables, just keep the overlay and retry gently
+            setTimeout(loadStatus, 2500);
+            return;
           }
+
+          // ✅ New snapshot arrived — remember it and render everything
+          lastSnapshotAt = lc;
+          document.getElementById("last-check").innerText = lc;
 
           const summaryBody = document.getElementById("summary-table");
           const summaryBody2 = document.getElementById("summary-table-2");
           const detailsContainer = document.getElementById("details-container");
 
-          // Clear previous content
-          detailsContainer.innerHTML = "";
+          // destroy existing DataTables (if any)
+          if ($.fn.DataTable.isDataTable("#dataTable")) $("#dataTable").DataTable().clear().destroy();
+          if ($.fn.DataTable.isDataTable("#dataTable2")) $("#dataTable2").DataTable().clear().destroy();
 
-          // Destroy DataTables if already initialized
-          if ($.fn.DataTable.isDataTable("#dataTable")) {
-            const dt1 = $("#dataTable").DataTable();
-            dt1.clear().destroy();
-          }
-          if ($.fn.DataTable.isDataTable("#dataTable2")) {
-            const dt2 = $("#dataTable2").DataTable();
-            dt2.clear().destroy();
-          }
-
-          // Clear raw table bodies
           summaryBody.innerHTML = "";
           summaryBody2.innerHTML = "";
+          detailsContainer.innerHTML = "";
 
-          const items = Array.isArray(data.monitored) ? data.monitored : [];
           const half = Math.ceil(items.length / 2);
 
-          // Populate tables + details
-          items.forEach((site, index) => {
+          items.forEach((site, idx) => {
             const row = document.createElement("tr");
-            if ((site.overall_status || "").includes("❌")) {
-              row.classList.add("table-danger");
-            }
+            if ((site.overall_status || "").includes("❌")) row.classList.add("table-danger");
             row.innerHTML = `
-        <td>${index + 1}</td>
+        <td>${idx + 1}</td>
         <td>${site.nama_web}</td>
         <td><a href="${site.link_web}" target="_blank" rel="noopener">${site.link_web}</a></td>
         <td>${site.overall_status}</td>
         <td>${site.avg_response_time}</td>
       `;
-
-            if (index < half) {
-              summaryBody.appendChild(row);
-            } else {
-              summaryBody2.appendChild(row);
-            }
+            (idx < half ? summaryBody : summaryBody2).appendChild(row);
 
             let detailHTML = `
         <h5 class="mt-4">${site.nama_web} — <a href="${site.link_web}" target="_blank" rel="noopener">${site.link_web}</a></h5>
         <table class="table table-hover table-sm mb-5">
-          <thead>
-            <tr>
-              <th>Menu URL</th>
-              <th>Status</th>
-              <th>Response Time (s)</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Menu URL</th><th>Status</th><th>Response Time (s)</th></tr></thead>
           <tbody>
       `;
-            (site.statuses || []).forEach((entry) => {
+            (site.statuses || []).forEach((e) => {
               detailHTML += `
           <tr>
-            <td><a href="${entry.url}" target="_blank" rel="noopener">${entry.url}</a></td>
-            <td>${entry.status}</td>
-            <td>${entry.response_time}</td>
-          </tr>
-        `;
+            <td><a href="${e.url}" target="_blank" rel="noopener">${e.url}</a></td>
+            <td>${e.status}</td>
+            <td>${e.response_time}</td>
+          </tr>`;
             });
             detailHTML += "</tbody></table>";
             detailsContainer.insertAdjacentHTML("beforeend", detailHTML);
           });
 
-          // Re-init DataTables
           $("#dataTable").DataTable({
             autoWidth: false,
             pageLength: half || 5,
@@ -268,7 +243,6 @@
               { width: "27%", targets: 4 },
             ],
           });
-
           $("#dataTable2").DataTable({
             autoWidth: false,
             pageLength: Math.max(0, items.length - half) || 5,
@@ -281,27 +255,21 @@
             ],
           });
 
-          // ✅ Only start countdown when we actually have data
+          // Countdown: only start when server gives a positive number
           const secondsLeft = Number.isInteger(data.seconds_until_next) && data.seconds_until_next > 0 ? data.seconds_until_next : null;
-
           if (secondsLeft == null) {
             document.getElementById("next-check").innerText = "—";
+            // Keep polling; spinner will show again on next call if snapshot doesn't change
+            setTimeout(loadStatus, 3000);
           } else {
             startCountdown(secondsLeft);
-          }
-        } catch (error) {
-          console.error("❌ Failed to load status:", error);
-          document.getElementById("next-check").innerText = "Error";
-          // Keep overlay visible and retry gently
-          setTimeout(loadStatus, 5000);
-          return;
-        } finally {
-          // Hide overlay ONLY when we have data in the tables
-          // (If we early-returned for no data, we never reach this.)
-          const itemsExist = document.querySelectorAll("#summary-table tr").length + document.querySelectorAll("#summary-table-2 tr").length > 0;
-          if (itemsExist) {
+            // Hide overlay now that fresh data is on screen
             document.getElementById("loading-overlay").style.display = "none";
           }
+        } catch (err) {
+          console.error("❌ Failed to load status:", err);
+          // Keep spinner and try again
+          setTimeout(loadStatus, 4000);
         }
       }
 

@@ -14,8 +14,8 @@
   "3": {
     "nama_web": "Prodi Teknik Elektro",
     "link_web": "https://ee.itk.ac.id",
-    "last_status": "UP",
-    "cycles_since_last_notif": 6
+    "last_status": "DOWN",
+    "cycles_since_last_notif": 0
   },
   "4": {
     "nama_web": "Prodi Teknik Lingkungan",
@@ -99,7 +99,7 @@
     "nama_web": "Prodi Ilmu Aktuaria",
     "link_web": "https://actsci.itk.ac.id",
     "last_status": "DOWN",
-    "cycles_since_last_notif": 2
+    "cycles_since_last_notif": 4
   },
   "18": {
     "nama_web": "Prodi Teknik Pangan",
@@ -129,7 +129,7 @@
     "nama_web": "Repository",
     "link_web": "https://repository.itk.ac.id",
     "last_status": "DOWN",
-    "cycles_since_last_notif": 2
+    "cycles_since_last_notif": 4
   },
   "23": {
     "nama_web": "Perpustakaan",
