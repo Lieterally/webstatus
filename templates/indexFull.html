@@ -174,6 +174,13 @@
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
 
+          if (data.refreshing === true) {
+            document.getElementById("loading-overlay").style.display = "flex";
+            document.getElementById("next-check").innerText = "Refreshing...";
+            setTimeout(loadStatus, 2500);
+            return;
+          }
+
           const items = Array.isArray(data.monitored) ? data.monitored : [];
           const lc = data.last_check || null;
 
