@@ -5,11 +5,26 @@
     <title>Monitoring Web ITK</title>
 
     <style>
-      /* body {
-        transform: scale(0.65);
-        transform-origin: top left;
-        width: 154%; 
-      } */
+      /* Fill (almost) full screen on wide displays */
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        background: #f8f9fc;
+        padding: 8px;
+      }
+
+      /* Center a very wide container, but keep a tiny margin on sides */
+      .main-wrap {
+        max-width: 98vw; /* nearly full width */
+        margin: 0 auto; /* centered */
+      }
+
+      /* Optional: give inner cards a touch less outer margin so it feels denser */
+      .card {
+        margin-bottom: 0.9rem;
+      }
 
       #loading-overlay {
         position: fixed;
@@ -38,12 +53,32 @@
 
       table.dataTable tbody td {
         padding: 4px 6px !important;
-        font-size: 1rem; /* adjust as needed */
+        font-size: 1rem;
       }
 
       table.dataTable thead th {
         padding: 6px 6px !important;
         font-size: 1rem;
+      }
+
+      /* Split view helpers */
+      #summary-container {
+        width: 100%;
+      }
+      #split-wrap {
+        display: flex;
+        gap: 1rem;
+      }
+      #split-wrap .split-col {
+        width: 50%;
+      }
+      @media (max-width: 992px) {
+        #split-wrap {
+          flex-direction: column;
+        }
+        #split-wrap .split-col {
+          width: 100%;
+        }
       }
     </style>
 
@@ -54,13 +89,15 @@
     <!-- DataTables CSS -->
     <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
   </head>
-  <body class="bg-light">
-    <div class="container">
+  <body>
+    <!-- Use container-fluid to span the screen; main-wrap caps at ~98vw -->
+    <div class="container-fluid main-wrap">
       <div class="card shadow mb-4 text-center position-relative p-3">
         <h2 class="m-0 font-weight-bold text-primary">MONITORING WEB ITK</h2>
         <div class="btn-group position-absolute" style="right: 1rem">
           <button id="btnRefreshNow" class="btn btn-outline-primary" type="button" title="Refresh now"><i class="fas fa-sync-alt fa-sm"></i> Refresh</button>
-          <a class="btn btn-primary" href="/login" title="Admin"> <i class="fas fa-user fa-sm text-white-50"></i> Admin </a>
+          <button id="btnSplitView" class="btn btn-outline-secondary" type="button" title="Split view"><i class="fas fa-columns fa-sm"></i> Split</button>
+          <a class="btn btn-primary" href="/dashboard" title="Admin"> <i class="fas fa-pen fa-sm text-white-50"></i> Manage </a>
         </div>
       </div>
 
@@ -85,23 +122,57 @@
           </div>
         </div>
         <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-bordered table-sm" id="dataTable" width="100%" cellspacing="0">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Unit</th>
-                  <th>Link</th>
-                  <th>Status</th>
-                  <th>Avg. Response Time (s)</th>
-                </tr>
-              </thead>
+          <!-- Summary container (single & split modes) -->
+          <div id="summary-container">
+            <!-- Single view -->
+            <div class="table-responsive" id="single-table-wrap">
+              <table class="table table-bordered table-sm" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Unit</th>
+                    <th>Link</th>
+                    <th>Status</th>
+                    <th>Avg. Response Time (s)</th>
+                  </tr>
+                </thead>
+                <tbody id="summary-table"></tbody>
+              </table>
+            </div>
 
-              <tbody id="summary-table">
-                <!-- JS will populate -->
-              </tbody>
-            </table>
+            <!-- Split view (hidden by default) -->
+            <div id="split-wrap" class="d-none">
+              <div class="table-responsive split-col">
+                <table class="table table-bordered table-sm" id="dataTableLeft" width="100%" cellspacing="0">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Unit</th>
+                      <th>Link</th>
+                      <th>Status</th>
+                      <th>Avg. Response Time (s)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="summary-left"></tbody>
+                </table>
+              </div>
+              <div class="table-responsive split-col">
+                <table class="table table-bordered table-sm" id="dataTableRight" width="100%" cellspacing="0">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Unit</th>
+                      <th>Link</th>
+                      <th>Status</th>
+                      <th>Avg. Response Time (s)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="summary-right"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
+          <!-- /Summary container -->
         </div>
       </div>
 
@@ -124,10 +195,88 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
-      // const intervalSeconds = 600;
       // let countdown = intervalSeconds;
       let countdownTimer;
       let lastSnapshotAt = null;
+
+      // Split view state + dataset cache
+      let splitView = localStorage.getItem("splitView") === "1";
+      let latestItems = [];
+
+      /* ----------------- Helpers ----------------- */
+      function destroyIfDataTable(sel) {
+        if ($.fn.DataTable.isDataTable(sel)) $(sel).DataTable().clear().destroy();
+      }
+
+      function buildRowHTML(site, rowNum) {
+        const danger = (site.overall_status || "").includes("❌") ? ' class="table-danger"' : "";
+        return `
+          <tr${danger}>
+            <td>${rowNum}</td>
+            <td>${site.nama_web}</td>
+            <td><a href="${site.link_web}" target="_blank">${site.link_web}</a></td>
+            <td>${site.overall_status}</td>
+            <td>${site.avg_response_time}</td>
+          </tr>
+        `;
+      }
+
+      function initDT(selector) {
+        $(selector).DataTable({
+          autoWidth: false,
+          pageLength: 50,
+          columnDefs: [
+            { width: "3%", targets: 0 },
+            { width: "25%", targets: 1 },
+            { width: "30%", targets: 2 },
+            { width: "15%", targets: 3 },
+            { width: "27%", targets: 4 },
+          ],
+        });
+      }
+
+      function renderSummary(items) {
+        // Clean any existing DTs
+        destroyIfDataTable("#dataTable");
+        destroyIfDataTable("#dataTableLeft");
+        destroyIfDataTable("#dataTableRight");
+
+        const singleWrap = document.getElementById("single-table-wrap");
+        const splitWrap = document.getElementById("split-wrap");
+
+        if (splitView) {
+          singleWrap.classList.add("d-none");
+          splitWrap.classList.remove("d-none");
+        } else {
+          splitWrap.classList.add("d-none");
+          singleWrap.classList.remove("d-none");
+        }
+
+        if (!splitView) {
+          const body = document.getElementById("summary-table");
+          body.innerHTML = "";
+          items.forEach((site, i) => body.insertAdjacentHTML("beforeend", buildRowHTML(site, i + 1)));
+          initDT("#dataTable");
+          return;
+        }
+
+        // Split mode
+        const mid = Math.ceil(items.length / 2);
+        const leftItems = items.slice(0, mid);
+        const rightItems = items.slice(mid);
+
+        const leftBody = document.getElementById("summary-left");
+        const rightBody = document.getElementById("summary-right");
+        leftBody.innerHTML = "";
+        rightBody.innerHTML = "";
+
+        leftItems.forEach((site, i) => leftBody.insertAdjacentHTML("beforeend", buildRowHTML(site, i + 1)));
+        rightItems.forEach((site, i) => rightBody.insertAdjacentHTML("beforeend", buildRowHTML(site, mid + i + 1)));
+
+        initDT("#dataTableLeft");
+        initDT("#dataTableRight");
+      }
+      /* --------------- /Helpers ------------------ */
 
       async function loadStatus() {
         // Always show overlay when we "refresh"
@@ -150,99 +299,63 @@
           const items = Array.isArray(data.monitored) ? data.monitored : [];
           const lc = data.last_check || null;
 
-          // 🔄 If no snapshot yet OR still the same snapshot as last time, keep spinner and try again soon
+          // If no snapshot yet OR same snapshot as last time, keep spinner and retry
           if (!lc || (lastSnapshotAt && lc === lastSnapshotAt) || items.length === 0) {
-            // don't touch the tables, just keep the overlay and retry gently
             setTimeout(loadStatus, 2500);
             return;
           }
 
-          // ✅ New snapshot arrived — remember it and render everything
+          // New snapshot arrived — remember it and render everything
           lastSnapshotAt = lc;
           document.getElementById("last-check").innerText = lc;
 
-          if ($.fn.DataTable.isDataTable("#dataTable")) {
-            const dt = $("#dataTable").DataTable();
-            dt.clear().destroy(); // clear rows + destroy
-          }
+          // Cache + render summary (single or split)
+          latestItems = items;
+          renderSummary(items);
 
-          const summaryBody = document.getElementById("summary-table");
-          summaryBody.innerHTML = "";
-
+          // Rebuild details
           const detailsContainer = document.getElementById("details-container");
           detailsContainer.innerHTML = "";
 
-          items.forEach((site, index) => {
-            const row = document.createElement("tr");
-            if ((site.overall_status || "").includes("❌")) {
-              row.classList.add("table-danger");
-            }
-
-            row.innerHTML = `
-    <td>${index + 1}</td>
-    <td>${site.nama_web}</td>
-    <td><a href="${site.link_web}" target="_blank">${site.link_web}</a></td>
-    <td>${site.overall_status}</td>
-    <td>${site.avg_response_time}</td>
-  `;
-            summaryBody.appendChild(row);
-
-            // Detail Section
+          items.forEach((site) => {
             let detailHTML = `
-    <h5 class="mt-4">${site.nama_web} — <a href="${site.link_web}" target="_blank">${site.link_web}</a></h5>
-    <table class="table table-hover table-sm mb-5">
-      <thead>
-        <tr>
-          <th>Menu URL</th>
-          <th>Status</th>
-          <th>Response Time (s)</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+              <h5 class="mt-4">${site.nama_web} — <a href="${site.link_web}" target="_blank">${site.link_web}</a></h5>
+              <table class="table table-hover table-sm mb-5">
+                <thead>
+                  <tr>
+                    <th>Menu URL</th>
+                    <th>Status</th>
+                    <th>Response Time (s)</th>
+                  </tr>
+                </thead>
+                <tbody>
+            `;
 
             site.statuses.forEach((entry) => {
               detailHTML += `
-      <tr>
-        <td><a href="${entry.url}" target="_blank">${entry.url}</a></td>
-        <td>${entry.status}</td>
-        <td>${entry.response_time}</td>
-      </tr>
-    `;
+                <tr>
+                  <td><a href="${entry.url}" target="_blank">${entry.url}</a></td>
+                  <td>${entry.status}</td>
+                  <td>${entry.response_time}</td>
+                </tr>
+              `;
             });
 
             detailHTML += `</tbody></table>`;
             detailsContainer.innerHTML += detailHTML;
           });
 
-          // Reinitialize DataTables with balanced page lengths
-
-          $("#dataTable").DataTable({
-            autoWidth: false,
-            pageLength: 25,
-            columnDefs: [
-              { width: "3%", targets: 0 }, // #
-              { width: "25%", targets: 1 }, // Unit
-              { width: "30%", targets: 2 }, // Link
-              { width: "15%", targets: 3 }, // Status
-              { width: "27%", targets: 4 }, // Avg. Response Time
-            ],
-          });
-
-          /// Countdown: only start when server gives a positive number
+          // Countdown: only start when server gives a positive number
           const secondsLeft = Number.isInteger(data.seconds_until_next) && data.seconds_until_next > 0 ? data.seconds_until_next : null;
           if (secondsLeft == null) {
             document.getElementById("next-check").innerText = "—";
-            // Keep polling; spinner will show again on next call if snapshot doesn't change
             setTimeout(loadStatus, 3000);
           } else {
             startCountdown(secondsLeft);
-            // Hide overlay now that fresh data is on screen
             document.getElementById("loading-overlay").style.display = "none";
           }
         } catch (err) {
           console.error("❌ Failed to load status:", err);
-          // Keep spinner and try again
           setTimeout(loadStatus, 4000);
         }
       }
@@ -260,7 +373,6 @@
 
           if (s <= 0) {
             clearInterval(countdownTimer);
-            // Just refresh the snapshot; this does NOT trigger a new cycle
             loadStatus();
           }
         }, 1000);
@@ -273,12 +385,10 @@
         const btn = document.getElementById("btnRefreshNow");
         if (!btn) return;
         try {
-          // UI state
           btn.disabled = true;
           btn.innerHTML = '<i class="fas fa-sync fa-spin fa-sm"></i> Refreshing';
           document.getElementById("loading-overlay").style.display = "flex";
 
-          // Hit the refresh endpoint
           const res = await fetch("/status/refresh?ts=" + Date.now(), {
             method: "GET",
             cache: "no-store",
@@ -289,27 +399,39 @@
             throw new Error(err.error || `HTTP ${res.status}`);
           }
 
-          // Re-pull the latest snapshot so tables + countdown update
           await loadStatus();
         } catch (e) {
           console.error("Refresh failed:", e);
           alert("Refresh failed: " + e.message);
-          // fall back to a simple reload of the snapshot even on error
           try {
             await loadStatus();
           } catch {}
         } finally {
-          // restore UI
           document.getElementById("loading-overlay").style.display = "none";
           btn.disabled = false;
           btn.innerHTML = '<i class="fas fa-sync-alt fa-sm"></i> Refresh';
         }
       }
 
-      // Hook up the button
+      // Hook up buttons
       document.addEventListener("DOMContentLoaded", () => {
         const btn = document.getElementById("btnRefreshNow");
         if (btn) btn.addEventListener("click", refreshNow);
+
+        const btnSplit = document.getElementById("btnSplitView");
+        if (btnSplit) {
+          // reflect saved state
+          btnSplit.classList.toggle("btn-secondary", splitView);
+          btnSplit.classList.toggle("btn-outline-secondary", !splitView);
+
+          btnSplit.addEventListener("click", () => {
+            splitView = !splitView;
+            localStorage.setItem("splitView", splitView ? "1" : "0");
+            btnSplit.classList.toggle("btn-secondary", splitView);
+            btnSplit.classList.toggle("btn-outline-secondary", !splitView);
+            if (latestItems.length) renderSummary(latestItems);
+          });
+        }
       });
     </script>
   </body>

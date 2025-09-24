@@ -21,6 +21,7 @@ from models import db, Website, Page, User
 from routes.websites import websites_bp  # import the blueprint
 from routes.dashboard import dashboard_bp  # import the blueprint
 from routes.auth import auth_bp  # import the blueprint
+from routes.monitoring import monitoring_bp  # import the blueprint
 from notifWhatsapp import notifWhatsapp
 from notifTelegram import notifTelegram
 from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin, current_user
@@ -48,6 +49,7 @@ migrate.init_app(app, db)
 app.register_blueprint(websites_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(monitoring_bp)
 
 
 login_manager = LoginManager()
@@ -441,9 +443,9 @@ def status_refresh():
     return make_response(jsonify(data), 200)
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# @app.route("/")
+# def index():
+#     return render_template("index.html")
 
 
 @app.route("/dashboard-test")
