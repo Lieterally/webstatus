@@ -28,7 +28,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, U
 from werkzeug.security import generate_password_hash, check_password_hash
 from threading import Thread
 from datetime import timedelta
-from config import SQLALCHEMY_DATABASE_URI, SECRET_KEY, PHONE_NUM
+from config import SQLALCHEMY_DATABASE_URI, SECRET_KEY, PHONE_NUM, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 migrate = Migrate()
 
@@ -74,6 +74,11 @@ _bg_state_lock = Lock()
 _scheduler_started = False
 
 
+BOT_TOKEN = f'{TELEGRAM_BOT_TOKEN}'  # Replace if regenerated
+# Replace with your Telegram user or group chat ID
+CHAT_ID = f'{TELEGRAM_CHAT_ID}'
+
+
 def _load_state():
     """Load or init the cache that tracks last status & notify cooldown per site."""
     try:
@@ -93,6 +98,96 @@ def _save_state(state):
                 json.dump(state, f, ensure_ascii=False, indent=2)
     except Exception:
         pass
+
+
+def _send_telegram_message(message):
+
+    # message = f"*Informasi | Status Website*\n\nHalo Tim ICT ITK..\nBerikut status terbaru untuk daftar website anda:\n\n{description}\n\n{list_web}"
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": message,
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": True,
+    }
+
+    try:
+
+        resp = requests.post(url, json=payload, timeout=15)
+        print("Telegram response:", resp.status_code, resp.text)
+    except Exception as e:
+        print("❌ telegram sendMessage error:", e)
+
+
+def _build_down_list_text() -> str:
+    """
+    Reads the persisted state and returns a human-readable message listing
+    all current DOWN sites. If none are down, return the friendly message.
+    """
+    # Make sure the cache has current fields (nama_web, link_web)
+    sites = load_sites()
+    state = _load_state()
+    state = _rehydrate_state_for_sites(state, sites)
+
+    down_items = []
+    for key, v in state.items():
+        if v.get("last_status") == "DOWN":
+            name = v.get("nama_web") or key
+            link = v.get("link_web") or ""
+            down_items.append(f"• {name} ({link})")
+
+    if not down_items:
+        return "Everything’s up!"
+    return "⚠️ <b>Currently DOWN</b>:\n" + "\n".join(down_items)
+
+
+def _telegram_bot_polling():
+    """
+    Simple long-polling loop to handle /down command.
+    Runs in its own daemon thread alongside your background runner.
+    """
+    if not BOT_TOKEN:
+        print("ℹ️ TELEGRAM_BOT_TOKEN not set; Telegram bot disabled.")
+        return
+
+    print("🤖 Telegram bot polling started.")
+    offset = None
+    session = requests.Session()
+
+    while True:
+        try:
+            r = session.get(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+                params={"timeout": 30, "offset": offset},
+                timeout=35,
+                verify=True,
+            )
+            data = r.json()
+            if not data.get("ok", False):
+                time.sleep(2)
+                continue
+
+            for upd in data.get("result", []):
+                offset = upd["update_id"] + 1  # advance offset regardless
+
+                msg = upd.get("message") or upd.get("edited_message")
+                if not msg:
+                    continue
+
+                chat = msg.get("chat", {})
+                chat_id = chat.get("id")
+                text = (msg.get("text") or "").strip()
+
+                # Only react to "/down" (with or without args)
+                if not text:
+                    continue
+                if text.startswith("/down"):
+                    reply = _build_down_list_text()
+                    _send_telegram_message(reply)
+
+        except Exception as e:
+            print("❌ telegram polling error:", e)
+            time.sleep(3)  # brief backoff
 
 
 def _site_key(site: dict) -> str:
@@ -378,6 +473,8 @@ def _start_background_once():
         return
     _scheduler_started = True
     Thread(target=_background_runner, daemon=True).start()
+    # Start Telegram bot polling
+    Thread(target=_telegram_bot_polling, daemon=True).start()
 
 
 # helper
