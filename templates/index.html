@@ -134,6 +134,7 @@
                     <th>Link</th>
                     <th>Status</th>
                     <th>Avg. Response Time (s)</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="summary-table"></tbody>
@@ -151,6 +152,7 @@
                       <th>Link</th>
                       <th>Status</th>
                       <th>Avg. Response Time (s)</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="summary-left"></tbody>
@@ -165,6 +167,7 @@
                       <th>Link</th>
                       <th>Status</th>
                       <th>Avg. Response Time (s)</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="summary-right"></tbody>
@@ -210,6 +213,17 @@
 
       function buildRowHTML(site, rowNum) {
         const danger = (site.overall_status || "").includes("❌") ? ' class="table-danger"' : "";
+        const btn = `
+            <button
+              class="btn btn-outline-primary btn-refresh-site"
+              style="padding: 0.15rem 0.35rem; font-size: 0.7rem;"
+              title="Refresh this site"
+              data-site-key="${site.site_key || ''}"
+              data-name="${site.nama_web || ''}"
+            >
+              <i class="fas fa-sync-alt"></i>
+            </button>
+        `;
         return `
           <tr${danger}>
             <td>${rowNum}</td>
@@ -217,6 +231,7 @@
             <td><a href="${site.link_web}" target="_blank">${site.link_web}</a></td>
             <td>${site.overall_status}</td>
             <td>${site.avg_response_time}</td>
+            <td>${btn}</td>
           </tr>
         `;
       }
@@ -228,9 +243,10 @@
           columnDefs: [
             { width: "3%", targets: 0 },
             { width: "25%", targets: 1 },
-            { width: "30%", targets: 2 },
+            { width: "26%", targets: 2 },
             { width: "15%", targets: 3 },
-            { width: "27%", targets: 4 },
+            { width: "22%", targets: 4 },
+            { width: "9%",  targets: 5, orderable: false, searchable: false }, // Action
           ],
         });
       }
@@ -346,14 +362,17 @@
           });
 
           // Countdown: only start when server gives a positive number
-          const secondsLeft = Number.isInteger(data.seconds_until_next) && data.seconds_until_next > 0 ? data.seconds_until_next : null;
-          if (secondsLeft == null) {
-            document.getElementById("next-check").innerText = "—";
-            setTimeout(loadStatus, 3000);
-          } else {
+          const secondsLeft = Number.isInteger(data.seconds_until_next) ? data.seconds_until_next : 0;
+          if (secondsLeft > 0) {
             startCountdown(secondsLeft);
-            document.getElementById("loading-overlay").style.display = "none";
+          } else {
+            document.getElementById("next-check").innerText = "—";
+            // optional: poll slower if no countdown
+            setTimeout(loadStatus, 3000);
           }
+
+          document.getElementById("loading-overlay").style.display = "none";
+          
         } catch (err) {
           console.error("❌ Failed to load status:", err);
           setTimeout(loadStatus, 4000);
@@ -433,6 +452,51 @@
           });
         }
       });
+
+      // Per-site refresh (delegated)
+      document.addEventListener("click", async (e) => {
+        const btn = e.target.closest(".btn-refresh-site");
+        if (!btn) return;
+
+        const siteKey = btn.getAttribute("data-site-key");
+        const name = btn.getAttribute("data-name") || "this site";
+        if (!siteKey) {
+          alert("Missing site key.");
+          return;
+        }
+
+        try {
+          btn.disabled = true;
+          btn.innerHTML = '<i class="fas fa-sync fa-spin"></i>';
+
+          // Optional: show overlay while refreshing one site
+          document.getElementById("loading-overlay").style.display = "flex";
+
+          const res = await fetch(`/status/refresh/${encodeURIComponent(siteKey)}?ts=${Date.now()}`, {
+            method: "GET",
+            cache: "no-store",
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+
+          
+          await loadStatus();
+        } catch (err) {
+          console.error("Per-site refresh failed:", err);
+          alert(`Refresh failed for ${name}: ${err.message}`);
+          try { await loadStatus(); } catch {}
+        } finally {
+          // restore the button
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+          document.getElementById("loading-overlay").style.display = "none";
+        }
+      });
+
     </script>
   </body>
 </html>
