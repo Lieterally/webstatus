@@ -5,7 +5,6 @@ from flask_login import LoginManager, login_user, logout_user, login_required, U
 auth_bp = Blueprint("auth", __name__)
 
 
-
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -17,11 +16,13 @@ def login():
         if user and user.check_password(password):
             login_user(user)
             flash("Login successful!", "success")
-            return redirect(url_for("dashboard.dashboard"))  # Redirect after login
+            # Redirect after login
+            return redirect(url_for("monitoring.index"))
         else:
             flash("Invalid username or password", "danger")
 
     return render_template("login.html")
+
 
 @auth_bp.route("/logout")
 @login_required
