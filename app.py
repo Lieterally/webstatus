@@ -337,7 +337,7 @@ def monitor_and_notify_once():
                 [f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
             list_web_tele_down = "\n".join(
                 [f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
-            notifWhatsapp(phone_number, description_down, status_wa_down)
+            # notifWhatsapp(phone_number, description_down, status_wa_down)
             notifTelegram(description_down, list_web_tele_down)
 
         if sites_recovered:
@@ -347,7 +347,7 @@ def monitor_and_notify_once():
                 [f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
             list_web_tele_up = "\n".join(
                 [f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
-            notifWhatsapp(phone_number, description_up, status_wa_up)
+            # notifWhatsapp(phone_number, description_up, status_wa_up)
             notifTelegram(description_up, list_web_tele_up)
 
         # Save snapshot for the UI to read
@@ -460,15 +460,15 @@ def _refresh_one_site(site_dict):
     # --- Notifications ---
     if should_notify_down:
         description_down = "⚠️⚠️ Website Down ⚠️⚠️"
-        notifWhatsapp(f"{PHONE_NUM}", description_down,
-                      f"{site_dict['nama_web']} ({site_dict['link_web']})")
+        # notifWhatsapp(f"{PHONE_NUM}", description_down,
+        #               f"{site_dict['nama_web']} ({site_dict['link_web']})")
         notifTelegram(description_down,
                       f"{site_dict['nama_web']} ({site_dict['link_web']})")
 
     if should_notify_recovered:
         description_up = "✅ Website UP ✅"
-        notifWhatsapp(f"{PHONE_NUM}", description_up,
-                      f"{site_dict['nama_web']} ({site_dict['link_web']})")
+        # notifWhatsapp(f"{PHONE_NUM}", description_up,
+        #               f"{site_dict['nama_web']} ({site_dict['link_web']})")
         notifTelegram(description_up,
                       f"{site_dict['nama_web']} ({site_dict['link_web']})")
 
