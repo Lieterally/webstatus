@@ -228,7 +228,7 @@
           <tr${danger}>
             <td>${rowNum}</td>
             <td>${site.nama_web}</td>
-            <td><a href="${site.link_web}" target="_blank">${site.link_web}</a></td>
+            <td><a href="${site.url_web}" target="_blank">${site.url_web}</a></td>
             <td>${site.overall_status}</td>
             <td>${site.avg_response_time}</td>
             <td>${btn}</td>
@@ -335,7 +335,7 @@
 
           items.forEach((site) => {
             let detailHTML = `
-              <h5 class="mt-4">${site.nama_web} — <a href="${site.link_web}" target="_blank">${site.link_web}</a></h5>
+              <h5 class="mt-4">${site.nama_web} — <a href="${site.url_web}" target="_blank">${site.url_web}</a></h5>
               <table class="table table-hover table-sm mb-5">
                 <thead>
                   <tr>

@@ -47,9 +47,10 @@ Monitoring Web ITK - Daftar Website
         <thead>
           <tr>
             <th>#</th>
+            <th>Nama</th>
             <th>Kategori</th>
-            <th>Unit</th>
             <th>URL</th>
+            <th>Deskripsi</th>
             <th>Halaman</th>
             <th style="width: 12%">Aksi</th>
           </tr>
@@ -57,9 +58,10 @@ Monitoring Web ITK - Daftar Website
         <tfoot>
           <tr>
             <th>#</th>
+            <th>Nama</th>
             <th>Kategori</th>
-            <th>Unit</th>
             <th>URL</th>
+            <th>Deskripsi</th>
             <th>Halaman</th>
             <th>Aksi</th>
           </tr>
@@ -68,9 +70,10 @@ Monitoring Web ITK - Daftar Website
           {% for web in websites %}
           <tr>
             <td>{{ loop.index }}</td>
-            <td>{{ web.slug_web }}</td>
             <td>{{ web.nama_web }}</td>
-            <td>{{ web.link_web }}</td>
+            <td>{{ web.kategori.kategori }}</td>
+            <td>{{ web.url_web }}</td>
+            <td>{{ web.deskripsi_web }}</td>
             <td>
               <ul class="list-group list-group-flush py-0">
                 {% for page in web.pages %}
@@ -87,7 +90,7 @@ Monitoring Web ITK - Daftar Website
 
               <!-- <pre>{{ pages_list | tojson }}</pre> -->
               <!-- prettier-ignore -->
-              <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ web.id_web }}" data-nama="{{ web.nama_web }}" data-link="{{ web.link_web }}" data-pages='{{ pages_list | tojson | safe }}'><i class="fas fa-pen fa-sm text-white-50"></i>
+              <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ web.id_web }}" data-nama="{{ web.nama_web }}" data-link="{{ web.url_web }}" data-pages='{{ pages_list | tojson | safe }}'><i class="fas fa-pen fa-sm text-white-50"></i>
                             Edit
                           </button>
               <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal" data-id="{{ web.id_web }}" data-name="{{ web.nama_web }}"><i class="fas fa-trash fa-sm text-white-50"></i> Hapus</button>
@@ -134,13 +137,29 @@ Monitoring Web ITK - Daftar Website
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="modal-body">
           <div class="mb-3">
-            <label for="inputNamaWeb" class="form-label">Unit</label>
+            <label for="inputNamaWeb" class="form-label">Nama</label>
             <input type="text" class="form-control" name="nama_web" id="inputNamaWeb" aria-describedby="namaWebHelp" placeholder="Unit Website" required />
           </div>
           <div class="mb-3">
-            <label for="inputUrlWeb" class="form-label">URL</label>
-            <input type="url" class="form-control" name="link_web" id="inputUrlWeb" placeholder="https://itk.ac.id" required />
+            <label for="inputKategoriWeb" class="form-label">Kategori</label>
+
+            <select class="form-control" name="kategori_web" id="inputKategoriWeb" aria-describedby="kategoriWebHelp" placeholder="Kategori Website" required>
+              {% for kategori in kategoris %}
+              <option value="{{ kategori.id_kategori }}">{{ kategori.kategori }}</option>
+              {% endfor %}
+            </select>
+
+            <!-- <input type="text" class="form-control" name="kategori_web" id="inputKategoriWeb" aria-describedby="kategoriWebHelp" placeholder="Kategori Website" required /> -->
           </div>
+          <div class="mb-3">
+            <label for="inputUrlWeb" class="form-label">URL</label>
+            <input type="url" class="form-control" name="url_web" id="inputUrlWeb" placeholder="https://itk.ac.id" required />
+          </div>
+          <div class="mb-3">
+            <label for="inputDeskripsiWeb" class="form-label">Deskripsi</label>
+            <input type="text" class="form-control" name="deskripsi_web" id="inputDeskripsiWeb" aria-describedby="deskripsiWebHelp" placeholder="Deskripsi Website" />
+          </div>
+
           <div class="mb-3">
             <label class="form-label">Pages</label>
             <div id="pages-container">
@@ -208,7 +227,7 @@ Monitoring Web ITK - Daftar Website
           </div>
           <div class="mb-3">
             <label for="editUrlWeb" class="form-label">URL</label>
-            <input type="url" class="form-control" name="link_web" id="editUrlWeb" placeholder="https://itk.ac.id" required />
+            <input type="url" class="form-control" name="url_web" id="editUrlWeb" placeholder="https://itk.ac.id" required />
           </div>
           <div class="mb-3">
             <label class="form-label">Pages</label>

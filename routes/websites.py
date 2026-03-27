@@ -1,33 +1,41 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from models import db, Website, Page
+from models import db, Website, Page, Kategori
 from slugify import slugify
 from flask_login import login_required
 
 websites_bp = Blueprint("websites", __name__)
 
+
 @websites_bp.route("/websites")
 @login_required
 def websites():
     websites = Website.query.all()
-    return render_template("websites/index.html", websites=websites, active_page = "websites")
+    kategoris = Kategori.query.all()
+    return render_template("websites/index.html", websites=websites, kategoris=kategoris, active_page="websites")
+
 
 @websites_bp.route("/add_website", methods=["POST"])
 @login_required
 def add_website():
     nama_web = request.form.get("nama_web")
-    link_web = request.form.get("link_web")
+    kategori_web = request.form.get("kategori_web")
+    url_web = request.form.get("url_web")
+    deskripsi_web = request.form.get("deskripsi_web")
     halaman_list = request.form.getlist("halaman_web[]")
 
-    website = Website(nama_web=nama_web, link_web=link_web, slug_web=slugify(nama_web))
+    website = Website(nama_web=nama_web, url_web=url_web, kategori_web=kategori_web,
+                      deskripsi_web=deskripsi_web, slug_web=slugify(nama_web))
     db.session.add(website)
     db.session.commit()
 
-    pages = [Page(id_web=website.id_web, halaman_web=halaman) for halaman in halaman_list]
+    pages = [Page(id_web=website.id_web, halaman_web=halaman)
+             for halaman in halaman_list]
     db.session.add_all(pages)
     db.session.commit()
 
     flash(f"Website '{nama_web}' berhasil ditambahkan.", "success")
     return redirect(url_for("websites.websites"))
+
 
 @websites_bp.route("/websites/edit/<int:id_web>", methods=["POST"])
 @login_required
@@ -44,6 +52,7 @@ def edit_website(id_web):
     db.session.commit()
     flash(f"Website '{website.nama_web}' berhasil diupdate.", "success")
     return redirect(url_for("websites.websites"))
+
 
 @websites_bp.route('/websites/delete/<int:id_web>')
 @login_required

@@ -97,13 +97,13 @@ def _save_state(state):
 
 def _site_key(site: dict) -> str:
     """Prefer a stable ID if present; otherwise fall back to link."""
-    return str(site.get("id_web") or site["link_web"])
+    return str(site.get("id_web") or site["url_web"])
 
 
 def _rehydrate_state_for_sites(state: dict, sites: list[dict]) -> dict:
     """
     Project the cache to only current sites AND carry display fields.
-    Each entry now stores: nama_web, link_web, last_status, cycles_since_last_notif.
+    Each entry now stores: nama_web, url_web, last_status, cycles_since_last_notif.
     """
     new_state = {}
     for s in sites:
@@ -112,7 +112,7 @@ def _rehydrate_state_for_sites(state: dict, sites: list[dict]) -> dict:
         new_state[key] = {
             "nama_web": s["nama_web"],                         # <-- stored
             # (optional but handy)
-            "link_web": s["link_web"],
+            "url_web": s["url_web"],
             "last_status": prev.get("last_status", "UNKNOWN"),
             "cycles_since_last_notif": int(prev.get("cycles_since_last_notif", NOTIF_COOLDOWN_CYCLES)),
         }
@@ -144,7 +144,7 @@ def load_sites():
             sites.append({
                 "id_web": site.id_web,
                 "nama_web": site.nama_web,
-                "link_web": site.link_web,
+                "url_web": site.url_web,
                 "halaman_web": [page.halaman_web for page in site.pages]
             })
         return sites
@@ -157,7 +157,7 @@ def count_sites():
     return sites
 
 
-def check_site(link_web, halaman_web):
+def check_site(url_web, halaman_web):
     statuses = []
     total_time = 0
     count = 0
@@ -169,7 +169,7 @@ def check_site(link_web, halaman_web):
     }
 
     for halaman in halaman_web:
-        url = link_web + halaman
+        url = url_web + halaman
         try:
 
             r = requests.get(url, headers=headers, timeout=5, verify=False)
@@ -210,7 +210,7 @@ def check_site(link_web, halaman_web):
     return statuses, overall_status, avg_response_time
 
 
-def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_pause=1):
+def check_site_multi(url_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_pause=1):
     """
     Run N checks in a row (default 3). The cycle's final result is whatever the
     Nth (third) check returns. Earlier attempts are ignored for UP/DOWN decision.
@@ -221,7 +221,7 @@ def check_site_multi(link_web, halaman_web, repeats=CHECK_REPEATS, per_attempt_p
 
     for i in range(repeats):
         statuses, overall_status, avg_response_time = check_site(
-            link_web, halaman_web)
+            url_web, halaman_web)
         last_statuses = statuses
         last_overall_status = overall_status
         last_avg_response_time = avg_response_time
@@ -251,17 +251,17 @@ def monitor_and_notify_once():
         def monitor(site):
             # OLD:
             # statuses, overall_status, avg_response_time = check_site_multi(
-            #     site["link_web"], site["halaman_web"])
+            #     site["url_web"], site["halaman_web"])
 
             # NEW (one check only):
             statuses, overall_status, avg_response_time = check_site(
-                site["link_web"], site["halaman_web"]
+                site["url_web"], site["halaman_web"]
             )
 
             return {
                 "site_key": _site_key(site),
                 "nama_web": site["nama_web"],
-                "link_web": site["link_web"],
+                "url_web": site["url_web"],
                 "overall_status": overall_status,
                 "avg_response_time": avg_response_time,
                 "statuses": statuses,
@@ -278,7 +278,7 @@ def monitor_and_notify_once():
 
         for web in monitored:
             key = web["site_key"]
-            link_web = web["link_web"]
+            url_web = web["url_web"]
             name = web["nama_web"]
             is_down = "❌" in web["overall_status"]
 
@@ -309,7 +309,7 @@ def monitor_and_notify_once():
 
             current_state[key].update({
                 "nama_web": name,
-                "link_web": link_web,
+                "url_web": url_web,
                 "last_status": "DOWN" if is_down else "UP",
                 "cycles_since_last_notif": since
             })
@@ -317,13 +317,13 @@ def monitor_and_notify_once():
             if should_notify_down:
                 sites_to_notify_down.append({
                     "nama_web": name,
-                    "link_web": link_web,
+                    "url_web": url_web,
                     "overall_status": web["overall_status"]
                 })
             if should_notify_recovered:
                 sites_recovered.append({
                     "nama_web": name,
-                    "link_web": link_web,
+                    "url_web": url_web,
                     "overall_status": "✅ UP"
                 })
 
@@ -334,9 +334,9 @@ def monitor_and_notify_once():
             phone_number = f'{PHONE_NUM}'
             description_down = "⚠️⚠️ Website Down ⚠️⚠️"
             status_wa_down = ", ".join(
-                [f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
+                [f"{s['nama_web']} ({s['url_web']})" for s in sites_to_notify_down])
             list_web_tele_down = "\n".join(
-                [f"{s['nama_web']} ({s['link_web']})" for s in sites_to_notify_down])
+                [f"{s['nama_web']} ({s['url_web']})" for s in sites_to_notify_down])
             # notifWhatsapp(phone_number, description_down, status_wa_down)
             notifTelegram(description_down, list_web_tele_down)
 
@@ -344,9 +344,9 @@ def monitor_and_notify_once():
             phone_number = f'{PHONE_NUM}'
             description_up = "✅ Website UP ✅"
             status_wa_up = ", ".join(
-                [f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
+                [f"{s['nama_web']} ({s['url_web']})" for s in sites_recovered])
             list_web_tele_up = "\n".join(
-                [f"{s['nama_web']} ({s['link_web']})" for s in sites_recovered])
+                [f"{s['nama_web']} ({s['url_web']})" for s in sites_recovered])
             # notifWhatsapp(phone_number, description_up, status_wa_up)
             notifTelegram(description_up, list_web_tele_up)
 
@@ -376,7 +376,7 @@ def _compute_seconds_until_next():
 def _ensure_site_in_state(state: dict, site: dict) -> str:
     """
     Make sure `state` has an entry for this site, and keep ALL other sites.
-    Also keep `nama_web` / `link_web` in sync.
+    Also keep `nama_web` / `url_web` in sync.
     Returns the key for the site.
     """
     key = _site_key(site)
@@ -384,14 +384,14 @@ def _ensure_site_in_state(state: dict, site: dict) -> str:
     if entry is None:
         state[key] = {
             "nama_web": site["nama_web"],
-            "link_web": site["link_web"],
+            "url_web": site["url_web"],
             "last_status": "UNKNOWN",
             "cycles_since_last_notif": NOTIF_COOLDOWN_CYCLES,
         }
     else:
         # keep display fields fresh
         entry["nama_web"] = site["nama_web"]
-        entry["link_web"] = site["link_web"]
+        entry["url_web"] = site["url_web"]
     return key
 
 
@@ -402,13 +402,13 @@ def _refresh_one_site(site_dict):
     """
     # Single probe (you’ve switched to 1x per cycle)
     statuses, overall_status, avg_response_time = check_site(
-        site_dict["link_web"], site_dict["halaman_web"]
+        site_dict["url_web"], site_dict["halaman_web"]
     )
 
     refreshed = {
         "site_key": _site_key(site_dict),
         "nama_web": site_dict["nama_web"],
-        "link_web": site_dict["link_web"],
+        "url_web": site_dict["url_web"],
         "overall_status": overall_status,
         "avg_response_time": avg_response_time,
         "statuses": statuses,
@@ -420,7 +420,7 @@ def _refresh_one_site(site_dict):
     key = _site_key(site_dict)
     entry = current_state.get(key, {
         "nama_web": site_dict["nama_web"],
-        "link_web": site_dict["link_web"],
+        "url_web": site_dict["url_web"],
         "last_status": "UNKNOWN",
         "cycles_since_last_notif": NOTIF_COOLDOWN_CYCLES,
     })
@@ -449,7 +449,7 @@ def _refresh_one_site(site_dict):
     # --- Update ONLY this site's entry ---
     current_state[key] = {
         "nama_web": site_dict["nama_web"],
-        "link_web": site_dict["link_web"],
+        "url_web": site_dict["url_web"],
         "last_status": "DOWN" if is_down else "UP",
         "cycles_since_last_notif": since,
     }
@@ -461,16 +461,16 @@ def _refresh_one_site(site_dict):
     if should_notify_down:
         description_down = "⚠️⚠️ Website Down ⚠️⚠️"
         # notifWhatsapp(f"{PHONE_NUM}", description_down,
-        #               f"{site_dict['nama_web']} ({site_dict['link_web']})")
+        #               f"{site_dict['nama_web']} ({site_dict['url_web']})")
         notifTelegram(description_down,
-                      f"{site_dict['nama_web']} ({site_dict['link_web']})")
+                      f"{site_dict['nama_web']} ({site_dict['url_web']})")
 
     if should_notify_recovered:
         description_up = "✅ Website UP ✅"
         # notifWhatsapp(f"{PHONE_NUM}", description_up,
-        #               f"{site_dict['nama_web']} ({site_dict['link_web']})")
+        #               f"{site_dict['nama_web']} ({site_dict['url_web']})")
         notifTelegram(description_up,
-                      f"{site_dict['nama_web']} ({site_dict['link_web']})")
+                      f"{site_dict['nama_web']} ({site_dict['url_web']})")
 
     return refreshed
 

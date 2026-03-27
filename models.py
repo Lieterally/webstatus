@@ -14,32 +14,46 @@ convention = {
 }
 db = SQLAlchemy(metadata=MetaData(naming_convention=convention))
 
+
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id_user = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)
-    
+    telegram_number = db.Column(db.String(256), nullable=False)
+
     def get_id(self):
         return str(self.id_user)
-    
+
     def set_password(self, password):
         self.password = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
+
+class Kategori(db.Model):
+    __tablename__ = 'categories'
+    id_kategori = db.Column(db.Integer, primary_key=True)
+    kategori = db.Column(db.String(100))
+    website = db.relationship('Website', backref='kategori', lazy=True)
+
+
 class Website(db.Model):
     __tablename__ = 'websites'
     id_web = db.Column(db.Integer, primary_key=True)
     nama_web = db.Column(db.String(100))
-    link_web  = db.Column(db.String(200))
-    slug_web  = db.Column(db.String(200))
+    url_web = db.Column(db.String(200))
+    slug_web = db.Column(db.String(200))
     pages = db.relationship('Page', backref='website', lazy=True)
+    deskripsi_web = db.Column(db.String(256), nullable=True)
+    kategori_web = db.Column(db.Integer, db.ForeignKey(
+        'categories.id_kategori', ondelete='SET NULL'), nullable=True)
+
 
 class Page(db.Model):
     __tablename__ = 'pages'
     id_page = db.Column(db.Integer, primary_key=True)
-    id_web = db.Column(db.Integer, db.ForeignKey('websites.id_web', ondelete='CASCADE'), nullable=False)
+    id_web = db.Column(db.Integer, db.ForeignKey(
+        'websites.id_web', ondelete='CASCADE'), nullable=False)
     halaman_web = db.Column(db.String(100))
-    

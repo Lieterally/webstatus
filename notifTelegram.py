@@ -1,8 +1,8 @@
 import requests
 from config import TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
-BOT_TOKEN = f'{TELEGRAM_BOT_TOKEN}'  # Replace if regenerated
-CHAT_ID = f'{TELEGRAM_CHAT_ID}'  # Replace with your Telegram user or group chat ID
+BOT_TOKEN = f'{TELEGRAM_BOT_TOKEN}'
+CHAT_ID = f'{TELEGRAM_CHAT_ID}'
 
 
 def notifTelegram(description, list_web):

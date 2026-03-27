@@ -165,9 +165,10 @@
                     <thead>
                       <tr>
                         <th>#</th>
+                        <th>Nama</th>
                         <th>Kategori</th>
-                        <th>Unit</th>
                         <th>URL</th>
+                        <th>Deskripsi</th>
                         <th>Halaman</th>
                         <th style="width: 12%">Aksi</th>
                       </tr>
@@ -175,9 +176,10 @@
                     <tfoot>
                       <tr>
                         <th>#</th>
+                        <th>Nama</th>
                         <th>Kategori</th>
-                        <th>Unit</th>
                         <th>URL</th>
+                        <th>Deskripsi</th>
                         <th>Halaman</th>
                         <th>Aksi</th>
                       </tr>
@@ -186,9 +188,10 @@
                       {% for web in websites %}
                       <tr>
                         <td>{{ loop.index }}</td>
-                        <td>{{ web.slug_web }}</td>
                         <td>{{ web.nama_web }}</td>
-                        <td>{{ web.link_web }}</td>
+                        <td>{{ web.kategori_web }}</td>
+                        <td>{{ web.url_web }}</td>
+                        <td>{{ web.deskripsi_web }}</td>
                         <td>
                           <ul class="list-group list-group-flush py-0">
                             {% for page in web.pages %}
@@ -200,7 +203,7 @@
                           {% set pages_list = [] %} {% for page in web.pages %} {% set _ = pages_list.append({"halaman_web": page.halaman_web}) %} {% endfor %}
                           <!-- <pre>{{ pages_list | tojson }}</pre> -->
                           <!-- prettier-ignore -->
-                          <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ web.id_web }}" data-nama="{{ web.nama_web }}" data-link="{{ web.link_web }}" data-pages='{{ pages_list | tojson | safe }}'><i class="fas fa-pen fa-sm text-white-50"></i>
+                          <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ web.id_web }}" data-nama="{{ web.nama_web }}" data-link="{{ web.url_web }}" data-pages='{{ pages_list | tojson | safe }}'><i class="fas fa-pen fa-sm text-white-50"></i>
                             Edit
                           </button>
                           <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal" data-id="{{ web.id_web }}" data-name="{{ web.nama_web }}">
@@ -278,7 +281,7 @@
               </div>
               <div class="mb-3">
                 <label for="inputUrlWeb" class="form-label">URL</label>
-                <input type="url" class="form-control" name="link_web" id="inputUrlWeb" placeholder="https://itk.ac.id" required />
+                <input type="url" class="form-control" name="url_web" id="inputUrlWeb" placeholder="https://itk.ac.id" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Pages</label>
@@ -347,7 +350,7 @@
               </div>
               <div class="mb-3">
                 <label for="editUrlWeb" class="form-label">URL</label>
-                <input type="url" class="form-control" name="link_web" id="editUrlWeb" placeholder="https://itk.ac.id" required />
+                <input type="url" class="form-control" name="url_web" id="editUrlWeb" placeholder="https://itk.ac.id" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">Pages</label>
