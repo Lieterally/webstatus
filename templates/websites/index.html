@@ -19,10 +19,21 @@ Monitoring Web ITK - Daftar Website
 
 <div class="row">
   <div class="col">
-    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
-    <div class="mb-3 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %}
+    <div
+      class="mb-3 alert alert-{{ category }} alert-dismissible fade show"
+      role="alert"
+    >
       {{ message }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      <button
+        type="button"
+        class="close"
+        data-dismiss="alert"
+        aria-label="Close"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
 
     {% endfor %} {% endif %} {% endwith %}
@@ -37,13 +48,25 @@ Monitoring Web ITK - Daftar Website
         <h6 class="m-0 py-3 font-weight-bold text-primary">Daftar Website</h6>
       </div>
       <div class="d-flex col justify-content-end">
-        <button type="button" class="btn btn-primary btn" data-toggle="modal" data-target="#addModal">Tambah Website</button>
+        <button
+          type="button"
+          class="btn btn-primary btn"
+          data-toggle="modal"
+          data-target="#addModal"
+        >
+          Tambah Website
+        </button>
       </div>
     </div>
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+      <table
+        class="table table-bordered"
+        id="dataTable"
+        width="100%"
+        cellspacing="0"
+      >
         <thead>
           <tr>
             <th>#</th>
@@ -73,11 +96,16 @@ Monitoring Web ITK - Daftar Website
             <td>{{ web.nama_web }}</td>
             <td>{{ web.kategori.kategori }}</td>
             <td>{{ web.url_web }}</td>
-            <td>{{ web.deskripsi_web }}</td>
+            <td>{{ web.deskripsi_web or "Tidak ada deskripsi" }}</td>
             <td>
               <ul class="list-group list-group-flush py-0">
                 {% for page in web.pages %}
-                <li class="list-group-item" style="padding: 0.25rem 1rem; font-size: 0.875rem">{{ page.halaman_web }}</li>
+                <li
+                  class="list-group-item"
+                  style="padding: 0.25rem 1rem; font-size: 0.875rem"
+                >
+                  {{ page.halaman_web }}
+                </li>
                 {% endfor %}
               </ul>
             </td>
@@ -90,10 +118,19 @@ Monitoring Web ITK - Daftar Website
 
               <!-- <pre>{{ pages_list | tojson }}</pre> -->
               <!-- prettier-ignore -->
-              <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ web.id_web }}" data-nama="{{ web.nama_web }}" data-link="{{ web.url_web }}" data-pages='{{ pages_list | tojson | safe }}'><i class="fas fa-pen fa-sm text-white-50"></i>
+              <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ web.id_web }}" data-nama="{{ web.nama_web }}" data-url="{{ web.url_web }}" data-kategori="{{ web.kategori.id_kategori }}" data-deskripsi="{{ web.deskripsi_web or '' }}" data-pages='{{ pages_list | tojson | safe }}'><i class="fas fa-pen fa-sm text-white-50"></i>
                             Edit
                           </button>
-              <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal" data-id="{{ web.id_web }}" data-name="{{ web.nama_web }}"><i class="fas fa-trash fa-sm text-white-50"></i> Hapus</button>
+              <button
+                type="button"
+                class="btn btn-sm btn-danger"
+                data-toggle="modal"
+                data-target="#deleteModal"
+                data-id="{{ web.id_web }}"
+                data-name="{{ web.nama_web }}"
+              >
+                <i class="fas fa-trash fa-sm text-white-50"></i> Hapus
+              </button>
             </td>
           </tr>
           {% endfor %}
@@ -104,18 +141,34 @@ Monitoring Web ITK - Daftar Website
 </div>
 
 <!-- Logout Modal-->
-<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="logoutModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+        <button
+          class="close"
+          type="button"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
           <span aria-hidden="true">×</span>
         </button>
       </div>
-      <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+      <div class="modal-body">
+        Select "Logout" below if you are ready to end your current session.
+      </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+        <button class="btn btn-secondary" type="button" data-dismiss="modal">
+          Cancel
+        </button>
         <a class="btn btn-primary" href="login.html">Logout</a>
       </div>
     </div>
@@ -123,12 +176,24 @@ Monitoring Web ITK - Daftar Website
 </div>
 
 <!-- Modal Add-->
-<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+<div
+  class="modal fade"
+  id="addModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalTitle"
+  aria-hidden="true"
+>
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="modalTitle">Tambah Website</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -138,14 +203,31 @@ Monitoring Web ITK - Daftar Website
         <div class="modal-body">
           <div class="mb-3">
             <label for="inputNamaWeb" class="form-label">Nama</label>
-            <input type="text" class="form-control" name="nama_web" id="inputNamaWeb" aria-describedby="namaWebHelp" placeholder="Unit Website" required />
+            <input
+              type="text"
+              class="form-control"
+              name="nama_web"
+              id="inputNamaWeb"
+              aria-describedby="namaWebHelp"
+              placeholder="Unit Website"
+              required
+            />
           </div>
           <div class="mb-3">
             <label for="inputKategoriWeb" class="form-label">Kategori</label>
 
-            <select class="form-control" name="kategori_web" id="inputKategoriWeb" aria-describedby="kategoriWebHelp" placeholder="Kategori Website" required>
+            <select
+              class="form-control"
+              name="kategori_web"
+              id="inputKategoriWeb"
+              aria-describedby="kategoriWebHelp"
+              placeholder="Kategori Website"
+              required
+            >
               {% for kategori in kategoris %}
-              <option value="{{ kategori.id_kategori }}">{{ kategori.kategori }}</option>
+              <option value="{{ kategori.id_kategori }}">
+                {{ kategori.kategori }}
+              </option>
               {% endfor %}
             </select>
 
@@ -153,29 +235,59 @@ Monitoring Web ITK - Daftar Website
           </div>
           <div class="mb-3">
             <label for="inputUrlWeb" class="form-label">URL</label>
-            <input type="url" class="form-control" name="url_web" id="inputUrlWeb" placeholder="https://itk.ac.id" required />
+            <input
+              type="url"
+              class="form-control"
+              name="url_web"
+              id="inputUrlWeb"
+              placeholder="https://itk.ac.id"
+              required
+            />
           </div>
           <div class="mb-3">
             <label for="inputDeskripsiWeb" class="form-label">Deskripsi</label>
-            <input type="text" class="form-control" name="deskripsi_web" id="inputDeskripsiWeb" aria-describedby="deskripsiWebHelp" placeholder="Deskripsi Website" />
+            <input
+              type="text"
+              class="form-control"
+              name="deskripsi_web"
+              id="inputDeskripsiWeb"
+              aria-describedby="deskripsiWebHelp"
+              placeholder="Deskripsi Website"
+            />
           </div>
 
           <div class="mb-3">
             <label class="form-label">Pages</label>
             <div id="pages-container">
               <div class="input-group mb-2">
-                <input type="text" name="halaman_web[]" class="form-control" placeholder="/login" required />
+                <input
+                  type="text"
+                  name="halaman_web[]"
+                  class="form-control"
+                  placeholder="/login"
+                  required
+                />
                 <div class="input-group-append">
-                  <button class="btn btn-danger remove-page" type="button"><i class="fas fa-trash fa-sm text-white-50"></i></button>
+                  <button class="btn btn-danger remove-page" type="button">
+                    <i class="fas fa-trash fa-sm text-white-50"></i>
+                  </button>
                 </div>
               </div>
             </div>
-            <button type="button" class="btn btn-sm btn-secondary" id="add-page">+ Add Page</button>
+            <button
+              type="button"
+              class="btn btn-sm btn-secondary"
+              id="add-page"
+            >
+              + Add Page
+            </button>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Tutup
+          </button>
           <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
       </form>
@@ -184,22 +296,39 @@ Monitoring Web ITK - Daftar Website
 </div>
 
 <!-- Modal Hapus-->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModal" aria-hidden="true">
+<div
+  class="modal fade"
+  id="deleteModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="deleteModal"
+  aria-hidden="true"
+>
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="deleteModal">Konfirmasi Penghapusan</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
 
       <div class="modal-body">
-        <p>Apakah Anda yakin ingin menghapus <strong id="delete-item-name">unit ini</strong>?</p>
+        <p>
+          Apakah Anda yakin ingin menghapus
+          <strong id="delete-item-name">unit ini</strong>?
+        </p>
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+          Batal
+        </button>
         <a id="confirm-delete-btn" class="btn btn-danger" href="#">Hapus</a>
       </div>
     </div>
@@ -207,12 +336,24 @@ Monitoring Web ITK - Daftar Website
 </div>
 
 <!-- Modal Edit-->
-<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="editModal"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="editModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="editModalLabel">Edit Website</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button
+          type="button"
+          class="close"
+          data-dismiss="modal"
+          aria-label="Close"
+        >
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -222,22 +363,72 @@ Monitoring Web ITK - Daftar Website
 
         <div class="modal-body">
           <div class="mb-3">
-            <label for="editNamaWeb" class="form-label">Unit</label>
-            <input type="text" class="form-control" name="nama_web" id="editNamaWeb" aria-describedby="namaWebHelp" placeholder="Unit Website" required />
+            <label for="editNamaWeb" class="form-label">Nama</label>
+            <input
+              type="text"
+              class="form-control"
+              name="nama_web"
+              id="editNamaWeb"
+              aria-describedby="namaWebHelp"
+              placeholder="Unit Website"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editKategoriWeb" class="form-label">Kategori</label>
+
+            <select
+              class="form-control"
+              name="kategori_web"
+              id="editKategoriWeb"
+              aria-describedby="kategoriWebHelp"
+              placeholder="Kategori Website"
+              required
+            >
+              {% for kategori in kategoris %}
+              <option value="{{ kategori.id_kategori }}">
+                {{ kategori.kategori }}
+              </option>
+              {% endfor %}
+            </select>
+
+            <!-- <input type="text" class="form-control" name="kategori_web" id="inputKategoriWeb" aria-describedby="kategoriWebHelp" placeholder="Kategori Website" required /> -->
           </div>
           <div class="mb-3">
             <label for="editUrlWeb" class="form-label">URL</label>
-            <input type="url" class="form-control" name="url_web" id="editUrlWeb" placeholder="https://itk.ac.id" required />
+            <input
+              type="url"
+              class="form-control"
+              name="url_web"
+              id="editUrlWeb"
+              placeholder="https://itk.ac.id"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="editDeskripsiWeb" class="form-label">Deskripsi</label>
+            <input
+              type="text"
+              class="form-control"
+              name="deskripsi_web"
+              id="editDeskripsiWeb"
+              aria-describedby="deskripsiWebHelp"
+              placeholder="Deskripsi Website"
+            />
           </div>
           <div class="mb-3">
             <label class="form-label">Pages</label>
             <div class="pages-container" id="edit-pages-container"></div>
-            <button type="button" class="btn btn-sm btn-secondary add-page-btn">+ Add Page</button>
+            <button type="button" class="btn btn-sm btn-secondary add-page-btn">
+              + Add Page
+            </button>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Tutup
+          </button>
           <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
       </form>
@@ -245,7 +436,6 @@ Monitoring Web ITK - Daftar Website
   </div>
 </div>
 
-{% endblock %} {% block scripts %}
 <script>
   $(document).ready(function () {
     setTimeout(function () {
@@ -330,7 +520,9 @@ Monitoring Web ITK - Daftar Website
       button.addEventListener("click", function () {
         const id = this.dataset.id;
         const nama = this.dataset.nama;
-        const link = this.dataset.link;
+        const url = this.dataset.url;
+        const deskripsi = this.dataset.deskripsi;
+        const kategori = this.dataset.kategori;
         const pages = JSON.parse(this.dataset.pages);
 
         // Update form action
@@ -339,7 +531,9 @@ Monitoring Web ITK - Daftar Website
 
         // Set input values
         document.getElementById("editNamaWeb").value = nama;
-        document.getElementById("editUrlWeb").value = link;
+        document.getElementById("editUrlWeb").value = url;
+        document.getElementById("editDeskripsiWeb").value = deskripsi;
+        document.getElementById("editKategoriWeb").value = kategori;
 
         // Populate pages
         const container = document.getElementById("edit-pages-container");
@@ -374,19 +568,21 @@ Monitoring Web ITK - Daftar Website
     });
 
     // Handle add new page
-    document.querySelector("#editModal .add-page-btn").addEventListener("click", function () {
-      const container = document.getElementById("edit-pages-container");
-      const div = document.createElement("div");
-      div.className = "input-group mb-2";
-      div.innerHTML = `
+    document
+      .querySelector("#editModal .add-page-btn")
+      .addEventListener("click", function () {
+        const container = document.getElementById("edit-pages-container");
+        const div = document.createElement("div");
+        div.className = "input-group mb-2";
+        div.innerHTML = `
       <input type="text" name="halaman_web[]" class="form-control" placeholder="/new-page" required />
       <div class="input-group-append">
         <button class="btn btn-danger remove-page" type="button"><i class="fas fa-trash fa-sm text-white-50"></i></button>
       </div>
     `;
-      container.appendChild(div);
-      updateDeleteButtons();
-    });
+        container.appendChild(div);
+        updateDeleteButtons();
+      });
   });
 </script>
 

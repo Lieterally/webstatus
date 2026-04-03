@@ -22,6 +22,8 @@ from routes.websites import websites_bp  # import the blueprint
 from routes.dashboard import dashboard_bp  # import the blueprint
 from routes.auth import auth_bp  # import the blueprint
 from routes.monitoring import monitoring_bp  # import the blueprint
+from routes.profile import profile_bp  # import the blueprint
+
 from notifWhatsapp import notifWhatsapp
 from notifTelegram import notifTelegram
 from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin, current_user
@@ -39,7 +41,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.secret_key = f'{SECRET_KEY}'
 
-# (Optional) consistent names for constraints – helps Alembic on MySQL
 
 
 db.init_app(app)
@@ -50,6 +51,7 @@ app.register_blueprint(websites_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(monitoring_bp)
+app.register_blueprint(profile_bp)
 
 
 login_manager = LoginManager()

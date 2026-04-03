@@ -42,7 +42,9 @@ def add_website():
 def edit_website(id_web):
     website = Website.query.get_or_404(id_web)
     website.nama_web = request.form.get("nama_web")
-    website.link_web = request.form.get("link_web")
+    website.url_web = request.form.get("url_web")
+    website.kategori_web = request.form.get("kategori_web")
+    website.deskripsi_web = request.form.get("deskripsi_web")
 
     Page.query.filter_by(id_web=id_web).delete()
     halaman_webs = request.form.getlist("halaman_web[]")

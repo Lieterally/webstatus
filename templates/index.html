@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="UTF-8" />
@@ -83,21 +83,84 @@
     </style>
 
     <!-- SB Admin 2 CSS -->
-    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
-    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet" />
+    <link
+      href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}"
+      rel="stylesheet"
+    />
     <!-- DataTables CSS -->
-    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <!-- Use container-fluid to span the screen; main-wrap caps at ~98vw -->
     <div class="container-fluid main-wrap">
       <div class="card shadow mb-4 text-center position-relative p-3">
+        <!-- LEFT: Logout Button -->
+        <div class="position-absolute" style="left: 1rem">
+          <a href="/logout" class="btn btn-danger" title="Logout">
+            <i class="fas fa-sign-out-alt fa-sm"></i> Logout
+          </a>
+        </div>
+
+        <!-- TITLE -->
         <h2 class="m-0 font-weight-bold text-primary">MONITORING WEB ITK</h2>
+
+        <!-- RIGHT: Existing Buttons -->
         <div class="btn-group position-absolute" style="right: 1rem">
-          <button id="btnRefreshNow" class="btn btn-outline-primary" type="button" title="Refresh now"><i class="fas fa-sync-alt fa-sm"></i> Refresh</button>
-          <button id="btnSplitView" class="btn btn-outline-secondary" type="button" title="Split view"><i class="fas fa-columns fa-sm"></i> Split</button>
-          <a class="btn btn-primary" href="/dashboard" title="Admin"> <i class="fas fa-pen fa-sm text-white-50"></i> Manage </a>
+          <button
+            id="btnRefreshNow"
+            class="btn btn-outline-primary"
+            type="button"
+          >
+            <i class="fas fa-sync-alt fa-sm"></i> Refresh
+          </button>
+          <button
+            id="btnSplitView"
+            class="btn btn-outline-secondary"
+            type="button"
+          >
+            <i class="fas fa-columns fa-sm"></i> Split
+          </button>
+          <a
+            class="btn btn-primary"
+            href="/websites"
+            title="Manage monitored websites"
+          >
+            <i class="fas fa-pen fa-sm text-white-50"></i> Manage
+          </a>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          {% with messages = get_flashed_messages(with_categories=true) %} {% if
+          messages %} {% for category, message in messages %}
+          <div
+            class="mb-3 alert alert-{{ category }} alert-dismissible fade show"
+            role="alert"
+          >
+            {{ message }}
+            <button
+              type="button"
+              class="close"
+              data-dismiss="alert"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+
+          {% endfor %} {% endif %} {% endwith %}
         </div>
       </div>
 
@@ -114,10 +177,16 @@
               <h5 class="m-0 font-weight-bold text-primary">Summary</h5>
             </div>
             <div class="col-lg-3 col-md-4 text-right">
-              <h5 class="mb-0">Refresh in: <span id="next-check" class="fw-bold">Loading...</span></h5>
+              <h5 class="mb-0">
+                Refresh in:
+                <span id="next-check" class="fw-bold">Loading...</span>
+              </h5>
             </div>
             <div class="col-lg-4 col-md-4 text-right">
-              <h5 class="mb-0">Last checked: <span id="last-check" class="fw-bold">Loading...</span></h5>
+              <h5 class="mb-0">
+                Last checked:
+                <span id="last-check" class="fw-bold">Loading...</span>
+              </h5>
             </div>
           </div>
         </div>
@@ -126,7 +195,12 @@
           <div id="summary-container">
             <!-- Single view -->
             <div class="table-responsive" id="single-table-wrap">
-              <table class="table table-bordered table-sm" id="dataTable" width="100%" cellspacing="0">
+              <table
+                class="table table-bordered table-sm"
+                id="dataTable"
+                width="100%"
+                cellspacing="0"
+              >
                 <thead>
                   <tr>
                     <th>#</th>
@@ -144,7 +218,12 @@
             <!-- Split view (hidden by default) -->
             <div id="split-wrap" class="d-none">
               <div class="table-responsive split-col">
-                <table class="table table-bordered table-sm" id="dataTableLeft" width="100%" cellspacing="0">
+                <table
+                  class="table table-bordered table-sm"
+                  id="dataTableLeft"
+                  width="100%"
+                  cellspacing="0"
+                >
                   <thead>
                     <tr>
                       <th>#</th>
@@ -159,7 +238,12 @@
                 </table>
               </div>
               <div class="table-responsive split-col">
-                <table class="table table-bordered table-sm" id="dataTableRight" width="100%" cellspacing="0">
+                <table
+                  class="table table-bordered table-sm"
+                  id="dataTableRight"
+                  width="100%"
+                  cellspacing="0"
+                >
                   <thead>
                     <tr>
                       <th>#</th>
@@ -198,6 +282,14 @@
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
     <script>
+      $(document).ready(function () {
+        setTimeout(function () {
+          $(".alert").alert("close");
+        }, 2000);
+      });
+    </script>
+
+    <script>
       // let countdown = intervalSeconds;
       let countdownTimer;
       let lastSnapshotAt = null;
@@ -208,18 +300,21 @@
 
       /* ----------------- Helpers ----------------- */
       function destroyIfDataTable(sel) {
-        if ($.fn.DataTable.isDataTable(sel)) $(sel).DataTable().clear().destroy();
+        if ($.fn.DataTable.isDataTable(sel))
+          $(sel).DataTable().clear().destroy();
       }
 
       function buildRowHTML(site, rowNum) {
-        const danger = (site.overall_status || "").includes("❌") ? ' class="table-danger"' : "";
+        const danger = (site.overall_status || "").includes("❌")
+          ? ' class="table-danger"'
+          : "";
         const btn = `
             <button
               class="btn btn-outline-primary btn-refresh-site"
               style="padding: 0.15rem 0.35rem; font-size: 0.7rem;"
               title="Refresh this site"
-              data-site-key="${site.site_key || ''}"
-              data-name="${site.nama_web || ''}"
+              data-site-key="${site.site_key || ""}"
+              data-name="${site.nama_web || ""}"
             >
               <i class="fas fa-sync-alt"></i>
             </button>
@@ -246,7 +341,7 @@
             { width: "26%", targets: 2 },
             { width: "15%", targets: 3 },
             { width: "22%", targets: 4 },
-            { width: "9%",  targets: 5, orderable: false, searchable: false }, // Action
+            { width: "9%", targets: 5, orderable: false, searchable: false }, // Action
           ],
         });
       }
@@ -271,7 +366,9 @@
         if (!splitView) {
           const body = document.getElementById("summary-table");
           body.innerHTML = "";
-          items.forEach((site, i) => body.insertAdjacentHTML("beforeend", buildRowHTML(site, i + 1)));
+          items.forEach((site, i) =>
+            body.insertAdjacentHTML("beforeend", buildRowHTML(site, i + 1)),
+          );
           initDT("#dataTable");
           return;
         }
@@ -286,8 +383,15 @@
         leftBody.innerHTML = "";
         rightBody.innerHTML = "";
 
-        leftItems.forEach((site, i) => leftBody.insertAdjacentHTML("beforeend", buildRowHTML(site, i + 1)));
-        rightItems.forEach((site, i) => rightBody.insertAdjacentHTML("beforeend", buildRowHTML(site, mid + i + 1)));
+        leftItems.forEach((site, i) =>
+          leftBody.insertAdjacentHTML("beforeend", buildRowHTML(site, i + 1)),
+        );
+        rightItems.forEach((site, i) =>
+          rightBody.insertAdjacentHTML(
+            "beforeend",
+            buildRowHTML(site, mid + i + 1),
+          ),
+        );
 
         initDT("#dataTableLeft");
         initDT("#dataTableRight");
@@ -301,7 +405,9 @@
         clearInterval(countdownTimer);
 
         try {
-          const response = await fetch(`/status?ts=${Date.now()}`, { cache: "no-store" });
+          const response = await fetch(`/status?ts=${Date.now()}`, {
+            cache: "no-store",
+          });
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const data = await response.json();
 
@@ -316,7 +422,11 @@
           const lc = data.last_check || null;
 
           // If no snapshot yet OR same snapshot as last time, keep spinner and retry
-          if (!lc || (lastSnapshotAt && lc === lastSnapshotAt) || items.length === 0) {
+          if (
+            !lc ||
+            (lastSnapshotAt && lc === lastSnapshotAt) ||
+            items.length === 0
+          ) {
             setTimeout(loadStatus, 2500);
             return;
           }
@@ -362,7 +472,9 @@
           });
 
           // Countdown: only start when server gives a positive number
-          const secondsLeft = Number.isInteger(data.seconds_until_next) ? data.seconds_until_next : 0;
+          const secondsLeft = Number.isInteger(data.seconds_until_next)
+            ? data.seconds_until_next
+            : 0;
           if (secondsLeft > 0) {
             startCountdown(secondsLeft);
           } else {
@@ -372,7 +484,6 @@
           }
 
           document.getElementById("loading-overlay").style.display = "none";
-          
         } catch (err) {
           console.error("❌ Failed to load status:", err);
           setTimeout(loadStatus, 4000);
@@ -388,7 +499,8 @@
           const m = Math.floor(s / 60);
           const r = s % 60;
 
-          document.getElementById("next-check").innerText = `${m}:${r.toString().padStart(2, "0")}`;
+          document.getElementById("next-check").innerText =
+            `${m}:${r.toString().padStart(2, "0")}`;
 
           if (s <= 0) {
             clearInterval(countdownTimer);
@@ -405,7 +517,8 @@
         if (!btn) return;
         try {
           btn.disabled = true;
-          btn.innerHTML = '<i class="fas fa-sync fa-spin fa-sm"></i> Refreshing';
+          btn.innerHTML =
+            '<i class="fas fa-sync fa-spin fa-sm"></i> Refreshing';
           document.getElementById("loading-overlay").style.display = "flex";
 
           const res = await fetch("/status/refresh?ts=" + Date.now(), {
@@ -472,10 +585,13 @@
           // Optional: show overlay while refreshing one site
           document.getElementById("loading-overlay").style.display = "flex";
 
-          const res = await fetch(`/status/refresh/${encodeURIComponent(siteKey)}?ts=${Date.now()}`, {
-            method: "GET",
-            cache: "no-store",
-          });
+          const res = await fetch(
+            `/status/refresh/${encodeURIComponent(siteKey)}?ts=${Date.now()}`,
+            {
+              method: "GET",
+              cache: "no-store",
+            },
+          );
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.error || `HTTP ${res.status}`);
@@ -483,12 +599,13 @@
 
           const data = await res.json();
 
-          
           await loadStatus();
         } catch (err) {
           console.error("Per-site refresh failed:", err);
           alert(`Refresh failed for ${name}: ${err.message}`);
-          try { await loadStatus(); } catch {}
+          try {
+            await loadStatus();
+          } catch {}
         } finally {
           // restore the button
           btn.disabled = false;
@@ -496,7 +613,6 @@
           document.getElementById("loading-overlay").style.display = "none";
         }
       });
-
     </script>
   </body>
 </html>

@@ -1,14 +1,23 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
     <title>Monitoring Web ITK - Login</title>
 
     <!-- SB Admin 2 CSS -->
-    <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}" rel="stylesheet" />
-    <link href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}" rel="stylesheet" />
+    <link
+      href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css') }}"
+      rel="stylesheet"
+    />
+    <link
+      href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}"
+      rel="stylesheet"
+    />
   </head>
 
   <body class="bg-gradient-primary">
@@ -25,21 +34,72 @@
                     <div class="text-center">
                       <h1 class="h4 text-gray-900 mb-4">Login Admin</h1>
                     </div>
+                    <div class="row">
+                      <div class="col">
+                        {% with messages =
+                        get_flashed_messages(with_categories=true) %} {% if
+                        messages %} {% for category, message in messages %}
+                        <div
+                          class="mb-3 alert alert-{{ category }} alert-dismissible fade show"
+                          role="alert"
+                        >
+                          {{ message }}
+                          <button
+                            type="button"
+                            class="close"
+                            data-dismiss="alert"
+                            aria-label="Close"
+                          >
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+
+                        {% endfor %} {% endif %} {% endwith %}
+                      </div>
+                    </div>
                     <form method="POST" class="user">
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                      />
                       <div class="form-group">
-                        <input type="text" name="username" class="form-control form-control-user" id="inputUsername" aria-describedby="usernameHelp" placeholder="Enter Username..." />
+                        <input
+                          type="text"
+                          name="username"
+                          class="form-control form-control-user"
+                          id="inputUsername"
+                          aria-describedby="usernameHelp"
+                          placeholder="Enter Username..."
+                        />
                       </div>
                       <div class="form-group">
-                        <input type="password" name="password" class="form-control form-control-user" id="inputPassword" placeholder="Password" />
+                        <input
+                          type="password"
+                          name="password"
+                          class="form-control form-control-user"
+                          id="inputPassword"
+                          placeholder="Password"
+                        />
                       </div>
                       <div class="form-group">
                         <div class="custom-control custom-checkbox small">
-                          <input type="checkbox" class="custom-control-input" id="customCheck" />
-                          <label class="custom-control-label" for="customCheck">Remember Me</label>
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="customCheck"
+                          />
+                          <label class="custom-control-label" for="customCheck"
+                            >Remember Me</label
+                          >
                         </div>
                       </div>
-                      <button type="submit" class="btn btn-primary btn-user btn-block">Login</button>
+                      <button
+                        type="submit"
+                        class="btn btn-primary btn-user btn-block"
+                      >
+                        Login
+                      </button>
                       <hr />
                     </form>
                     <!-- <hr />
@@ -69,5 +129,13 @@
 
     <!-- Custom scripts for all pages-->
     <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+
+    <script>
+      $(document).ready(function () {
+        setTimeout(function () {
+          $(".alert").alert("close");
+        }, 2000);
+      });
+    </script>
   </body>
 </html>
