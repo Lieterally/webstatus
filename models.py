@@ -20,7 +20,7 @@ class User(db.Model, UserMixin):
     id_user = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(256), nullable=False)
-    telegram_number = db.Column(db.String(256), nullable=False)
+    # telegram_number = db.Column(db.String(256), nullable=False)
 
     def get_id(self):
         return str(self.id_user)
@@ -30,6 +30,14 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password, password)
+
+
+class TelegramTarget(db.Model):
+    __tablename__ = 'telegram_targets'
+    id_telegram_target = db.Column(db.Integer, primary_key=True)
+    chat_id = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(100))
+    is_active = db.Column(db.Boolean, default=True)
 
 
 class Kategori(db.Model):

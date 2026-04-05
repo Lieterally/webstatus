@@ -1,8 +1,9 @@
 # seed_itk_sites.py
 from flask import Flask
 from sqlalchemy import text
-from models import db, Website, Page, Kategori
+from models import db, Website, Page, Kategori, User, TelegramTarget
 from config import SQLALCHEMY_DATABASE_URI
+from werkzeug.security import generate_password_hash
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
@@ -184,7 +185,45 @@ def ensure_page(site_id: int, path: str):
         db.session.add(Page(id_web=site_id, halaman_web=path))
 
 
+def ensure_user(username, password):
+    user = User.query.filter_by(username=username).one_or_none()
+    if not user:
+        user = User(
+            username=username,
+            password=generate_password_hash(password)
+        )
+        db.session.add(user)
+        db.session.flush()
+    return user
+
+
+def ensure_telegram_target(chat_id, name, is_active=True):
+    target = TelegramTarget.query.filter_by(chat_id=str(chat_id)).one_or_none()
+    if not target:
+        target = TelegramTarget(
+            chat_id=str(chat_id),
+            name=name,
+            is_active=is_active
+        )
+        db.session.add(target)
+        db.session.flush()
+    else:
+        # update if needed
+        changed = False
+        if target.name != name:
+            target.name = name
+            changed = True
+        if target.is_active != is_active:
+            target.is_active = is_active
+            changed = True
+        if changed:
+            db.session.add(target)
+
+
 with app.app_context():
+
+    ensure_user("admin", "adminwebstatus")
+    ensure_telegram_target("981874873", "Alit", True)
 
     kategori_map = {}
     for k in KATEGORI_LIST:
@@ -212,8 +251,8 @@ with app.app_context():
                 db.session.add(site)
         else:
             # create new
-            site = Website(nama_web=w["nama_web"],
-                           url_web=w["url_web"], slug_web=slug, kategori_web=kategori_id)
+            site = Website(nama_web=w["nama_web"], url_web=w["url_web"],
+                           slug_web=slug, kategori_web=kategori_id)
             db.session.add(site)
             db.session.flush()  # get site.id_web for pages
 

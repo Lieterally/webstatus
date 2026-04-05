@@ -17,7 +17,7 @@ from datetime import datetime
 import urllib3
 from flask import make_response
 from concurrent.futures import ThreadPoolExecutor
-from models import db, Website, Page, User
+from models import db, Website, Page, User, TelegramTarget
 from routes.websites import websites_bp  # import the blueprint
 from routes.dashboard import dashboard_bp  # import the blueprint
 from routes.auth import auth_bp  # import the blueprint
@@ -40,7 +40,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'{SQLALCHEMY_DATABASE_URI}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.secret_key = f'{SECRET_KEY}'
-
 
 
 db.init_app(app)
@@ -332,6 +331,13 @@ def monitor_and_notify_once():
         _save_state(current_state)
 
         # Notifs
+
+        with app.app_context():
+            telegram_targets = TelegramTarget.query.filter_by(
+                is_active=True).all()
+
+        chat_ids = [t.chat_id for t in telegram_targets]
+
         if sites_to_notify_down:
             phone_number = f'{PHONE_NUM}'
             description_down = "⚠️⚠️ Website Down ⚠️⚠️"
@@ -340,7 +346,8 @@ def monitor_and_notify_once():
             list_web_tele_down = "\n".join(
                 [f"{s['nama_web']} ({s['url_web']})" for s in sites_to_notify_down])
             # notifWhatsapp(phone_number, description_down, status_wa_down)
-            notifTelegram(description_down, list_web_tele_down)
+
+            notifTelegram(chat_ids, description_down, list_web_tele_down)
 
         if sites_recovered:
             phone_number = f'{PHONE_NUM}'
@@ -350,7 +357,8 @@ def monitor_and_notify_once():
             list_web_tele_up = "\n".join(
                 [f"{s['nama_web']} ({s['url_web']})" for s in sites_recovered])
             # notifWhatsapp(phone_number, description_up, status_wa_up)
-            notifTelegram(description_up, list_web_tele_up)
+
+            notifTelegram(chat_ids, description_up, list_web_tele_up)
 
         # Save snapshot for the UI to read
         snapshot = {
@@ -460,18 +468,27 @@ def _refresh_one_site(site_dict):
     _save_state(current_state)
 
     # --- Notifications ---
+
+    with app.app_context():
+        telegram_targets = TelegramTarget.query.filter_by(
+            is_active=True).all()
+
+    chat_ids = [t.chat_id for t in telegram_targets]
+
     if should_notify_down:
         description_down = "⚠️⚠️ Website Down ⚠️⚠️"
         # notifWhatsapp(f"{PHONE_NUM}", description_down,
         #               f"{site_dict['nama_web']} ({site_dict['url_web']})")
-        notifTelegram(description_down,
+
+        notifTelegram(chat_ids, description_down,
                       f"{site_dict['nama_web']} ({site_dict['url_web']})")
 
     if should_notify_recovered:
         description_up = "✅ Website UP ✅"
         # notifWhatsapp(f"{PHONE_NUM}", description_up,
         #               f"{site_dict['nama_web']} ({site_dict['url_web']})")
-        notifTelegram(description_up,
+
+        notifTelegram(chat_ids, description_up,
                       f"{site_dict['nama_web']} ({site_dict['url_web']})")
 
     return refreshed
