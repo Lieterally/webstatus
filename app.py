@@ -31,6 +31,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from threading import Thread
 from datetime import timedelta
 from config import SQLALCHEMY_DATABASE_URI, SECRET_KEY, PHONE_NUM
+from telegram_chat import run_telegram_bot
 
 migrate = Migrate()
 
@@ -518,6 +519,10 @@ def _start_background_once():
     Thread(target=_background_runner, daemon=True).start()
 
 
+def _start_telegram_bot():
+    Thread(target=run_telegram_bot, daemon=True).start()
+
+
 # helper
 def _prime_next_run_if_needed():
     global NEXT_RUN_AT
@@ -665,4 +670,5 @@ def _kick_off_bg():
 if __name__ == "__main__":
     # _prime_next_run_if_needed()
     _start_background_once()
+    _start_telegram_bot()
     app.run(debug=True, use_reloader=False)
