@@ -47,7 +47,11 @@ def run_telegram_bot():
             elif text == "/help":
                 reply = (
                     "Bot Commands\n\n"
-                    "/chat\\_id"
+                    "/chat\\_id - Get your chat ID\n"
+                    "/help - Show available commands\n"
+                    "/recipient - Register as a notification recipient\n"
+                    "/unsubscribe - Unsubscribe from notifications\n"
+                    "/subscribe - Subscribe to notifications"
                 )
 
                 print(f"Received /help command from chat_id: {chat_id}")
