@@ -23,6 +23,7 @@ from routes.dashboard import dashboard_bp  # import the blueprint
 from routes.auth import auth_bp  # import the blueprint
 from routes.monitoring import monitoring_bp  # import the blueprint
 from routes.profile import profile_bp  # import the blueprint
+from routes.telegram_targets import telegram_targets_bp  # import the blueprint
 
 from notifWhatsapp import notifWhatsapp
 from notifTelegram import notifTelegram
@@ -52,6 +53,7 @@ app.register_blueprint(dashboard_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(monitoring_bp)
 app.register_blueprint(profile_bp)
+app.register_blueprint(telegram_targets_bp)
 
 
 login_manager = LoginManager()
@@ -667,8 +669,22 @@ def _kick_off_bg():
         _start_background_once()
 
 
-if __name__ == "__main__":
-    # _prime_next_run_if_needed()
+_services_started = False
+
+
+def start_services():
+    global _services_started
+    if _services_started:
+        return
+
+    _services_started = True
     _start_background_once()
     _start_telegram_bot()
+
+
+if __name__ == "__main__":
+    start_services()
+    # _prime_next_run_if_needed()
+    # _start_background_once()
+    # _start_telegram_bot()
     app.run(debug=True, use_reloader=False)

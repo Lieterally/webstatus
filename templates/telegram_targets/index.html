@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+
+<!-- prettier-ignore -->
+{% block title %}
+Monitoring Web ITK - Telegram Targets
+{% endblock %}
+
+<!-- prettier-ignore -->
+{% block content %}
+
+<!-- Page Heading -->
+
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Daftar Target Telegram</h1>
+</div>
+
+<div class="row">
+  <div class="col">
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if messages %} {% for category, message in messages %}
+    <div class="mb-3 alert alert-{{ category }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
+    {% endfor %} {% endif %} {% endwith %}
+  </div>
+</div>
+
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+  <div class="card-header py-3">
+    <div class="row">
+      <div class="col">
+        <h6 class="m-0 py-3 font-weight-bold text-primary">Daftar Target Telegram</h6>
+      </div>
+      <div class="d-flex col justify-content-end">
+        <button type="button" class="btn btn-primary btn" data-toggle="modal" data-target="#addModal">Tambah Target Telegram</button>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nama</th>
+            <th>Chat_ID</th>
+            <th>Status</th>
+            <th style="width: 12%">Aksi</th>
+          </tr>
+        </thead>
+        <tfoot>
+          <tr>
+            <th>#</th>
+            <th>Nama</th>
+            <th>Chat_ID</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </tfoot>
+        <tbody>
+          {% for telegram_target in telegram_targets %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ telegram_target.name }}</td>
+            <td>{{ telegram_target.chat_id }}</td>
+            <td>
+              <span class="badge badge-{% if telegram_target.is_active %}success{% else %}secondary{% endif %}"> {% if telegram_target.is_active %}Aktif{% else %}Non-Aktif{% endif %} </span>
+            </td>
+            <td>
+              <!-- prettier-ignore -->
+              <button type="button" class="btn btn-primary btn-sm open-edit-modal" data-id="{{ telegram_target.id_telegram_target }}" data-nama="{{ telegram_target.name }}" data-chat-id="{{ telegram_target.chat_id }}" data-is-active="{{ telegram_target.is_active }}"><i class="fas fa-pen fa-sm text-white-50"></i>
+                            Edit
+                          </button>
+              <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal" data-id="{{ telegram_target.id_telegram_target }}" data-name="{{ telegram_target.name }}">
+                <i class="fas fa-trash fa-sm text-white-50"></i> Hapus
+              </button>
+              <a href="{{ url_for('telegram_targets.check_telegram_target', id=telegram_target.id_telegram_target) }}" class="btn btn-sm btn-success"> <i class="fas fa-check-circle fa-sm text-white-50"></i> Cek Status </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+      <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+        <a class="btn btn-primary" href="login.html">Logout</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Add-->
+<div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Tambah Target Telegram</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form method="POST" action="{{ url_for('telegram_targets.add_telegram_target') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="inputNama" class="form-label">Nama</label>
+            <input type="text" class="form-control" name="name" id="inputNama" aria-describedby="namaHelp" placeholder="Nama Target" required />
+          </div>
+          <div class="mb-3">
+            <label for="inputChatId" class="form-label">Chat ID</label>
+            <input type="text" class="form-control" name="chat_id" id="inputChatId" aria-describedby="chatIdHelp" placeholder="Chat ID Telegram" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_active" id="addRadioAktif" value="1" checked />
+              <label class="form-check-label" for="addRadioAktif">Aktif</label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_active" id="addRadioNonAktif" value="0" />
+              <label class="form-check-label" for="addRadioNonAktif">Non-Aktif</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Hapus-->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModal">Konfirmasi Penghapusan</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form method="POST" id="deleteForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div class="modal-body">
+          <p>
+            Apakah Anda yakin ingin menghapus
+            <strong id="delete-item-name">unit ini</strong>?
+          </p>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit-->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Edit Target Telegram</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <form method="POST" id="editForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="editName" class="form-label">Nama</label>
+            <input type="text" class="form-control" name="name" id="editName" aria-describedby="namaHelp" placeholder="Nama Target" required />
+          </div>
+          <div class="mb-3">
+            <label for="editChatId" class="form-label">Chat ID</label>
+            <input type="text" class="form-control" name="chat_id" id="editChatId" aria-describedby="chatIdHelp" placeholder="Chat ID Telegram" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_active" id="editRadioAktif" value="1" />
+              <label class="form-check-label" for="editRadioAktif">Aktif</label>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="is_active" id="editRadioNonAktif" value="0" />
+              <label class="form-check-label" for="editRadioNonAktif">Non-Aktif</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap core JavaScript-->
+<script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+
+<!-- Core plugin JavaScript-->
+<script src="{{ url_for('static', filename='vendor/jquery-easing/jquery.easing.min.js') }}"></script>
+
+<script>
+  $(document).ready(function () {
+    setTimeout(function () {
+      $(".alert").alert("close");
+    }, 2000);
+  });
+</script>
+
+<!-- Script Delete -->
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const deleteButtons = document.querySelectorAll('button[data-target="#deleteModal"]');
+
+    deleteButtons.forEach((button) => {
+      button.addEventListener("click", function () {
+        const id = this.dataset.id;
+        const name = this.dataset.name;
+        document.getElementById("delete-item-name").textContent = name;
+
+        const form = document.getElementById("deleteForm");
+        form.action = `/telegram_targets/delete/${id}`;
+      });
+    });
+  });
+</script>
+
+<!-- Script Add -->
+
+<script></script>
+
+<!-- Script Edit -->
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("Edit modal script loaded");
+
+    document.querySelectorAll(".open-edit-modal").forEach((button) => {
+      button.addEventListener("click", function () {
+        const id = this.dataset.id;
+        const nama = this.dataset.nama;
+        const chatId = this.dataset.chatId;
+        const isActive = this.dataset.isActive;
+
+        // Update form action
+        const form = document.getElementById("editForm");
+        form.action = `/telegram_targets/edit/${id}`;
+
+        // Set input values
+        document.getElementById("editName").value = nama;
+        document.getElementById("editChatId").value = chatId;
+
+        // Convert value to boolean
+        const isActiveBool = isActive === "True" || isActive === "true" || isActive === "1";
+
+        // Set radio button
+        document.getElementById("editRadioAktif").checked = isActiveBool;
+        document.getElementById("editRadioNonAktif").checked = !isActiveBool;
+
+        // Open modal
+        $("#editModal").modal("show");
+      });
+    });
+  });
+</script>
+
+{% endblock %}

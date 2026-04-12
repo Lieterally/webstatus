@@ -9,7 +9,6 @@ def run_telegram_bot():
     BOT_TOKEN = f'{TELEGRAM_BOT_TOKEN}'
     BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-
     commands = [
         {"command": "start", "description": "Start the bot"},
         {"command": "help", "description": "Show available commands"},
@@ -22,8 +21,6 @@ def run_telegram_bot():
     requests.post(f"{BASE_URL}/setMyCommands", json={"commands": commands})
 
     last_update_id = None
-
-
 
     while True:
         url = f"{BASE_URL}/getUpdates"
@@ -38,6 +35,8 @@ def run_telegram_bot():
             message = update.get("message", {})
             text = message.get("text", "")
             chat_id = message.get("chat", {}).get("id")
+            username = message.get("from", {}).get("username")
+            name = message.get("from", {}).get("first_name", "")
 
             if not text or not chat_id:
                 continue
@@ -105,6 +104,7 @@ def run_telegram_bot():
                     else:
                         new_target = TelegramTarget(
                             chat_id=str(chat_id),
+                            name=str(username) if username else str(name),
                             is_active=True
                         )
                         db.session.add(new_target)

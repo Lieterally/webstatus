@@ -70,32 +70,6 @@ Monitoring Web ITK - Profile
   </div>
 </div>
 
-<div class="card shadow mb-4">
-  <div class="card-header py-3">
-    <div class="row">
-      <div class="col">
-        <h6 class="m-0 py-3 font-weight-bold text-primary">Nomor Telepon Telegram Penerima Notifikasi</h6>
-      </div>
-      <div class="col text-right align-self-center">
-        <button type="submit" class="btn btn-primary" form="phone_form">Simpan</button>
-      </div>
-    </div>
-  </div>
-  <!-- <div class="card-body">
-    <form id="phone_form" method="POST" action="{{ url_for('profile.update_phone') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <div class="row g-3">
-        <div class="col-12 col-md-4">
-          <label for="phone" class="form-label">Nomor Telepon</label>
-          <div class="position-relative">
-            <input data-editable type="text" name="phone" id="phone" class="form-control pe-5" value="{{ user.telegram_number }}" placeholder="62..." />
-          </div>
-        </div>
-      </div>
-    </form>
-  </div> -->
-</div>
-
 {% endblock %} {% block scripts %}
 <script>
   $(document).ready(function () {

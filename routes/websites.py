@@ -56,7 +56,7 @@ def edit_website(id_web):
     return redirect(url_for("websites.websites"))
 
 
-@websites_bp.route('/websites/delete/<int:id_web>')
+@websites_bp.route("/websites/delete/<int:id_web>", methods=["POST"])
 @login_required
 def delete_website(id_web):
     website = Website.query.get_or_404(id_web)
