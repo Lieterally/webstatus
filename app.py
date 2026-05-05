@@ -716,6 +716,11 @@ def start_services():
     _start_telegram_bot()
 
 
+## bot tele ensure run in server
+@app.before_first_request
+def init_services():
+    start_services()
+
 if __name__ == "__main__":
     start_services()
     # _prime_next_run_if_needed()
