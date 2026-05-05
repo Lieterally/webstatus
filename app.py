@@ -556,7 +556,15 @@ def _start_background_once():
 
 
 def _start_telegram_bot():
-    Thread(target=run_telegram_bot, daemon=True).start()
+    def runner():
+        while True:
+            try:
+                run_telegram_bot()
+            except Exception as e:
+                print("❌ BOT CRASHED:", e)
+                time.sleep(5)
+
+    Thread(target=runner, daemon=True).start()
 
 
 # helper
@@ -715,11 +723,6 @@ def start_services():
     _start_background_once()
     _start_telegram_bot()
 
-
-## bot tele ensure run in server
-@app.before_first_request
-def init_services():
-    start_services()
 
 if __name__ == "__main__":
     start_services()
