@@ -555,19 +555,8 @@ def _start_background_once():
     Thread(target=_background_runner, daemon=True).start()
 
 
-def _telegram_runner():
-    while True:
-        try:
-            print("🤖 Starting Telegram bot...")
-            run_telegram_bot()
-        except Exception as e:
-            print("❌ Telegram bot crashed:", e)
-        
-        # wait before restarting
-        time.sleep(5)
-
 def _start_telegram_bot():
-    Thread(target=_telegram_runner, daemon=False).start()
+    Thread(target=run_telegram_bot, daemon=True).start()
 
 
 # helper
