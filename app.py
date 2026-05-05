@@ -176,7 +176,7 @@ def check_site(url_web, halaman_web):
         url = url_web + halaman
         try:
 
-            r = requests.get(url, headers=headers, timeout=5, verify=False)
+            r = requests.get(url, headers=headers, timeout=(2, 5), verify=False)
 
             elapsed = r.elapsed.total_seconds()
             # print(f"⏱️ Checked {url} in {elapsed} seconds")
@@ -271,7 +271,7 @@ def monitor_and_notify_once():
                 "statuses": statuses,
             }
 
-        with ThreadPoolExecutor(max_workers=10) as executor:
+        with ThreadPoolExecutor(max_workers=30) as executor:
             monitored = list(executor.map(monitor, sites))
 
         sites_to_notify_down = []
@@ -368,9 +368,16 @@ def monitor_and_notify_once():
             "last_check": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "monitored": monitored,
         }
+        # with _bg_state_lock:
+        #     LATEST_STATUS = snapshot
+        #     NEXT_RUN_AT = datetime.now() + timedelta(seconds=INTERVAL_SECONDS)
+
         with _bg_state_lock:
             LATEST_STATUS = snapshot
-            NEXT_RUN_AT = datetime.now() + timedelta(seconds=INTERVAL_SECONDS)
+
+            # Only reset schedule if it's missing or already passed
+            if NEXT_RUN_AT is None or datetime.now() >= NEXT_RUN_AT:
+                NEXT_RUN_AT = datetime.now() + timedelta(seconds=INTERVAL_SECONDS)
     finally:
         with _bg_state_lock:
             IS_REFRESHING = False    # <— clear the flag
@@ -497,18 +504,45 @@ def _refresh_one_site(site_dict):
     return refreshed
 
 
+# def _background_runner():
+#     # Run once immediately so the UI has data
+#     try:
+#         monitor_and_notify_once()
+#     except Exception as e:
+#         print("❌ initial background cycle error:", e)
+
+#     # Then wait full interval between subsequent runs
+#     while True:
+#         time.sleep(INTERVAL_SECONDS)
+#         try:
+#             monitor_and_notify_once()
+#         except Exception as e:
+#             print("❌ background cycle error:", e)
+
 def _background_runner():
+    global NEXT_RUN_AT
+
     # Run once immediately so the UI has data
     try:
         monitor_and_notify_once()
     except Exception as e:
         print("❌ initial background cycle error:", e)
 
-    # Then wait full interval between subsequent runs
     while True:
-        time.sleep(INTERVAL_SECONDS)
         try:
+            now = datetime.now()
+
+            with _bg_state_lock:
+                if NEXT_RUN_AT is None:
+                    NEXT_RUN_AT = now + timedelta(seconds=INTERVAL_SECONDS)
+
+                wait_seconds = max(0, (NEXT_RUN_AT - now).total_seconds())
+
+            # sleep until the exact scheduled time
+            time.sleep(wait_seconds)
+
             monitor_and_notify_once()
+
         except Exception as e:
             print("❌ background cycle error:", e)
 
@@ -521,8 +555,19 @@ def _start_background_once():
     Thread(target=_background_runner, daemon=True).start()
 
 
+def _telegram_runner():
+    while True:
+        try:
+            print("🤖 Starting Telegram bot...")
+            run_telegram_bot()
+        except Exception as e:
+            print("❌ Telegram bot crashed:", e)
+        
+        # wait before restarting
+        time.sleep(5)
+
 def _start_telegram_bot():
-    Thread(target=run_telegram_bot, daemon=True).start()
+    Thread(target=_telegram_runner, daemon=False).start()
 
 
 # helper
